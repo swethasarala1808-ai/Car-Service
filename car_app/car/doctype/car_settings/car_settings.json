@@ -1,0 +1,127 @@
+{
+ "name": "Car Settings",
+ "module": "Car",
+ "doctype": "DocType",
+ "issingle": 1,
+ "is_submittable": 0,
+ "permissions": [
+  {
+   "role": "All",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0,
+   "report": 1,
+   "export": 1,
+   "import": 0,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0,
+   "report": 1,
+   "export": 1,
+   "import": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "garage_name",
+   "fieldtype": "Data",
+   "label": "Garage Name",
+   "idx": 1
+  },
+  {
+   "fieldname": "tagline",
+   "fieldtype": "Data",
+   "label": "Tagline",
+   "idx": 2
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "idx": 3
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "idx": 4
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Text",
+   "label": "Address",
+   "idx": 5
+  },
+  {
+   "fieldname": "upi_id",
+   "fieldtype": "Data",
+   "label": "UPI ID",
+   "idx": 6
+  },
+  {
+   "fieldname": "gst_number",
+   "fieldtype": "Data",
+   "label": "GST Number",
+   "idx": 7
+  },
+  {
+   "fieldname": "google_rating",
+   "fieldtype": "Float",
+   "label": "Google Rating",
+   "idx": 8
+  },
+  {
+   "fieldname": "working_hours",
+   "fieldtype": "Data",
+   "label": "Working Hours",
+   "idx": 9
+  },
+  {
+   "fieldname": "total_vehicles_served",
+   "fieldtype": "Int",
+   "label": "Total Vehicles Served",
+   "idx": 10
+  },
+  {
+   "fieldname": "experience_years",
+   "fieldtype": "Int",
+   "label": "Experience Years",
+   "idx": 11
+  },
+  {
+   "fieldname": "logo_url",
+   "fieldtype": "Data",
+   "label": "Logo URL",
+   "idx": 12
+  }
+ ],
+ "creation": "2024-01-01 00:00:00.000000",
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "docstatus": 0,
+ "idx": 0,
+ "track_changes": 0,
+ "track_views": 0,
+ "in_create": 0,
+ "allow_import": 1,
+ "allow_copy": 1,
+ "hide_toolbar": 0
+}

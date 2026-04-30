@@ -1,0 +1,2 @@
+include MANIFEST.in
+recursive-include car_app *.json *.js *.css *.html *.py *.txt

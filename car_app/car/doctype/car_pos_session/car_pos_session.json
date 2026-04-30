@@ -1,0 +1,149 @@
+{
+ "name": "Car POS Session",
+ "module": "Car",
+ "doctype": "DocType",
+ "autoname": "format:CPOS-.YYYY.-.#####",
+ "is_submittable": 0,
+ "issingle": 0,
+ "permissions": [
+  {
+   "role": "All",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0,
+   "report": 1,
+   "export": 1,
+   "import": 0,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0,
+   "report": 1,
+   "export": 1,
+   "import": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "session_date",
+   "fieldtype": "Date",
+   "label": "Session Date",
+   "idx": 1
+  },
+  {
+   "fieldname": "opened_by",
+   "fieldtype": "Data",
+   "label": "Opened By",
+   "idx": 2
+  },
+  {
+   "fieldname": "opening_time",
+   "fieldtype": "Time",
+   "label": "Opening Time",
+   "idx": 3
+  },
+  {
+   "fieldname": "opening_cash",
+   "fieldtype": "Currency",
+   "label": "Opening Cash",
+   "default": "0",
+   "idx": 4
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nOpen\nClosed",
+   "default": "Open",
+   "idx": 5
+  },
+  {
+   "fieldname": "closing_time",
+   "fieldtype": "Time",
+   "label": "Closing Time",
+   "idx": 6
+  },
+  {
+   "fieldname": "closing_cash",
+   "fieldtype": "Currency",
+   "label": "Closing Cash",
+   "idx": 7
+  },
+  {
+   "fieldname": "total_cash_sales",
+   "fieldtype": "Currency",
+   "label": "Total Cash Sales",
+   "idx": 8
+  },
+  {
+   "fieldname": "total_upi_sales",
+   "fieldtype": "Currency",
+   "label": "Total UPI Sales",
+   "idx": 9
+  },
+  {
+   "fieldname": "total_card_sales",
+   "fieldtype": "Currency",
+   "label": "Total Card Sales",
+   "idx": 10
+  },
+  {
+   "fieldname": "total_sales",
+   "fieldtype": "Currency",
+   "label": "Total Sales",
+   "idx": 11
+  },
+  {
+   "fieldname": "total_invoices",
+   "fieldtype": "Int",
+   "label": "Total Invoices",
+   "idx": 12
+  },
+  {
+   "fieldname": "expected_closing",
+   "fieldtype": "Currency",
+   "label": "Expected Closing",
+   "idx": 13
+  },
+  {
+   "fieldname": "difference",
+   "fieldtype": "Currency",
+   "label": "Difference",
+   "idx": 14
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes",
+   "idx": 15
+  }
+ ],
+ "creation": "2024-01-01 00:00:00.000000",
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "docstatus": 0,
+ "idx": 0,
+ "track_changes": 0,
+ "track_views": 0,
+ "in_create": 0,
+ "allow_import": 1,
+ "allow_copy": 1,
+ "hide_toolbar": 0
+}

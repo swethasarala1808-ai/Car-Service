@@ -1,0 +1,11 @@
+{
+ "app_name": "car_app",
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "Module Def",
+ "modified": "2024-01-01 00:00:00",
+ "modified_by": "Administrator",
+ "module_name": "Car",
+ "name": "Car",
+ "owner": "Administrator",
+ "restrict_to_domain": ""
+}

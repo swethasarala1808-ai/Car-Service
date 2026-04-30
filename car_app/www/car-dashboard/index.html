@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoCare Pro - Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#030e1f;--card:#0a1929;--card2:#0d2137;--orange:#FF6B35;--peach:#F7C59F;--text:#e8f4fd;--muted:#7a9bbf;--sidebar:220px;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar);background:rgba(10,25,41,.98);border-right:1px solid rgba(255,107,53,.15);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:200;padding:0 0 24px;}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid rgba(255,107,53,.1);font-size:1.1rem;font-weight:700;color:var(--orange);}
+.sidebar-menu{list-style:none;padding:8px 0;}
+.sidebar-menu li{cursor:pointer;padding:10px 20px;display:flex;align-items:center;gap:10px;color:var(--muted);transition:.2s;font-size:.92rem;}
+.sidebar-menu li:hover,.sidebar-menu li.active{background:rgba(255,107,53,.1);color:var(--orange);border-right:3px solid var(--orange);}
+.sidebar-menu li span{font-size:1.1rem;}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:rgba(10,25,41,.98);border-bottom:1px solid rgba(255,107,53,.1);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-title{font-size:1.2rem;font-weight:700;}
+.topbar-actions{display:flex;gap:12px;align-items:center;}
+.btn{background:linear-gradient(135deg,var(--orange),var(--peach));color:#030e1f;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;transition:.2s;font-size:.9rem;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,107,53,.4);}
+.btn-sm{padding:6px 14px;font-size:.82rem;}
+.btn-outline{background:transparent;border:1px solid var(--orange);color:var(--orange);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;transition:.2s;}
+.btn-outline:hover{background:var(--orange);color:#030e1f;}
+.content{padding:28px;flex:1;}
+.section{display:none;}
+.section.active{display:block;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--card);border:1px solid rgba(255,107,53,.12);border-radius:14px;padding:20px;}
+.stat-label{color:var(--muted);font-size:.82rem;margin-bottom:6px;}
+.stat-value{font-size:2rem;font-weight:800;color:var(--orange);}
+.stat-sub{color:var(--muted);font-size:.78rem;margin-top:4px;}
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.tab{padding:7px 16px;border-radius:20px;background:var(--card);border:1px solid rgba(255,107,53,.15);color:var(--muted);cursor:pointer;font-size:.85rem;transition:.2s;}
+.tab.active,.tab:hover{background:var(--orange);color:#030e1f;border-color:var(--orange);}
+.filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.filter-input{background:var(--card2);border:1px solid rgba(255,107,53,.2);color:var(--text);padding:8px 14px;border-radius:8px;font-size:.85rem;}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;}
+th{background:rgba(255,107,53,.08);color:var(--muted);padding:12px 16px;text-align:left;font-size:.82rem;font-weight:600;}
+td{padding:12px 16px;border-top:1px solid rgba(255,107,53,.06);font-size:.88rem;}
+tr:hover td{background:rgba(255,107,53,.04);}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;}
+.badge-received{background:rgba(59,130,246,.2);color:#60a5fa;}
+.badge-inprogress{background:rgba(250,204,21,.2);color:#fbbf24;}
+.badge-waiting{background:rgba(249,115,22,.2);color:#fb923c;}
+.badge-ready{background:rgba(34,197,94,.2);color:#4ade80;}
+.badge-delivered{background:rgba(20,184,166,.2);color:#2dd4bf;}
+.badge-cancelled{background:rgba(239,68,68,.2);color:#f87171;}
+.badge-paid{background:rgba(34,197,94,.2);color:#4ade80;}
+.badge-unpaid{background:rgba(239,68,68,.2);color:#f87171;}
+.badge-low{background:rgba(239,68,68,.2);color:#f87171;}
+select.status-sel{background:var(--card2);border:1px solid rgba(255,107,53,.2);color:var(--text);padding:4px 8px;border-radius:6px;font-size:.8rem;cursor:pointer;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid rgba(255,107,53,.3);border-radius:20px;padding:32px;max-width:650px;width:90%;max-height:85vh;overflow-y:auto;}
+.modal h2{font-size:1.3rem;margin-bottom:20px;color:var(--orange);}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;color:var(--muted);margin-bottom:4px;font-size:.85rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--card2);border:1px solid rgba(255,107,53,.2);color:var(--text);padding:10px 14px;border-radius:8px;font-size:.9rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.pos-wrap{display:grid;grid-template-columns:1fr 340px;gap:20px;height:calc(100vh - 180px);}
+.pos-services{overflow-y:auto;padding-right:4px;}
+.pos-cart{background:var(--card);border-radius:14px;padding:20px;display:flex;flex-direction:column;overflow:hidden;}
+.pos-service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:12px;}
+.pos-svc-btn{background:var(--card2);border:1px solid rgba(255,107,53,.15);border-radius:10px;padding:14px;cursor:pointer;transition:.2s;text-align:center;}
+.pos-svc-btn:hover{border-color:var(--orange);}
+.pos-svc-name{font-size:.85rem;font-weight:600;}
+.pos-svc-price{color:var(--orange);font-size:.9rem;font-weight:700;}
+.cart-items{flex:1;overflow-y:auto;margin:12px 0;}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,107,53,.06);}
+.cart-total{border-top:2px solid var(--orange);padding-top:12px;margin-top:8px;}
+.pos-step{display:none;}
+.pos-step.active{display:block;}
+.step-indicator{display:flex;gap:8px;margin-bottom:20px;}
+.step-dot{width:32px;height:32px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:.85rem;border:2px solid rgba(255,107,53,.2);}
+.step-dot.active{background:var(--orange);color:#030e1f;border-color:var(--orange);font-weight:700;}
+.step-dot.done{background:rgba(34,197,94,.2);border-color:#4ade80;color:#4ade80;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;}
+.cal-day-label{text-align:center;color:var(--muted);font-size:.75rem;padding:4px;}
+.cal-cell{background:var(--card);border-radius:6px;min-height:80px;padding:4px;font-size:.72rem;cursor:pointer;transition:.2s;}
+.cal-cell:hover{background:var(--card2);}
+.cal-cell.today{border:1px solid var(--orange);}
+.cal-cell-date{color:var(--muted);font-size:.7rem;margin-bottom:2px;}
+.cal-event{border-radius:3px;padding:2px 4px;margin-bottom:2px;font-size:.68rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-session-bar{background:var(--card);border:1px solid rgba(255,107,53,.2);border-radius:10px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.toast{position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,var(--orange),var(--peach));color:#030e1f;padding:12px 20px;border-radius:10px;font-weight:600;z-index:9999;display:none;font-size:.9rem;}
+.wa-popup{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:800;display:none;align-items:center;justify-content:center;}
+.wa-popup.open{display:flex;}
+.wa-box{background:var(--card);border:1px solid rgba(255,107,53,.3);border-radius:16px;padding:28px;max-width:460px;width:90%;text-align:center;}
+.wa-msg{background:var(--card2);border-radius:10px;padding:16px;margin:16px 0;font-size:.85rem;text-align:left;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto;}
+.receipt-area{background:#fff;color:#000;border-radius:10px;padding:24px;max-width:360px;margin:0 auto;font-family:monospace;}
+.receipt-area h3{text-align:center;font-size:1.1rem;margin-bottom:4px;}
+.receipt-line{display:flex;justify-content:space-between;font-size:.85rem;padding:2px 0;}
+.receipt-divider{border-top:1px dashed #999;margin:6px 0;}
+.low-stock-badge{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:6px;padding:2px 8px;font-size:.75rem;}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo">🚗 AutoCare Pro</div>
+  <ul class="sidebar-menu" id="sideMenu">
+    <li class="active" onclick="showSection('dashboard')"><span>📊</span> Dashboard</li>
+    <li onclick="showSection('appointments')"><span>📅</span> Appointments</li>
+    <li onclick="showSection('jobcards')"><span>🔧</span> Job Cards</li>
+    <li onclick="showSection('calendar')"><span>🗓️</span> Calendar</li>
+    <li onclick="showSection('customers')"><span>👤</span> Customers</li>
+    <li onclick="showSection('vehicles')"><span>🚗</span> Vehicles</li>
+    <li onclick="showSection('mechanics')"><span>👨‍🔧</span> Mechanics</li>
+    <li onclick="showSection('services')"><span>⚙️</span> Services</li>
+    <li onclick="showSection('spareparts')"><span>🔩</span> Spare Parts</li>
+    <li onclick="showSection('invoices')"><span>🧾</span> Invoices</li>
+    <li onclick="showSection('records')"><span>📋</span> Service Records</li>
+    <li onclick="showSection('pos')"><span>💰</span> POS</li>
+  </ul>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" onclick="openModal('newJobCard')">+ New Job Card</button>
+      <button class="btn-outline" onclick="openModal('newAppointment')">+ Appointment</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="stats-grid" id="dashStats">
+        <div class="stat-card"><div class="stat-label">Today's Jobs</div><div class="stat-value" id="statTodayJobs">-</div></div>
+        <div class="stat-card"><div class="stat-label">Month Revenue</div><div class="stat-value" id="statRevenue">-</div></div>
+        <div class="stat-card"><div class="stat-label">Total Vehicles</div><div class="stat-value" id="statVehicles">-</div></div>
+        <div class="stat-card"><div class="stat-label">Completed Today</div><div class="stat-value" id="statCompleted">-</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Jobs</div><div class="stat-value" id="statPending">-</div></div>
+        <div class="stat-card"><div class="stat-label">Low Stock Items</div><div class="stat-value" id="statLowStock">-</div></div>
+      </div>
+      <h3 style="margin-bottom:12px;color:var(--muted);">Recent Job Cards</h3>
+      <div id="dashJobTable"></div>
+    </div>
+
+    <!-- APPOINTMENTS -->
+    <div class="section" id="sec-appointments">
+      <div class="filter-tabs" id="aptTabs">
+        <div class="tab active" onclick="filterApt('All',this)">All</div>
+        <div class="tab" onclick="filterApt('Booked',this)">Booked</div>
+        <div class="tab" onclick="filterApt('Confirmed',this)">Confirmed</div>
+        <div class="tab" onclick="filterApt('Completed',this)">Completed</div>
+        <div class="tab" onclick="filterApt('Cancelled',this)">Cancelled</div>
+      </div>
+      <div class="filters">
+        <input type="date" class="filter-input" id="aptDateFilter" onchange="loadAppointments()">
+        <input type="text" class="filter-input" id="aptServiceFilter" placeholder="Service type..." oninput="loadAppointments()">
+      </div>
+      <div id="aptTable"></div>
+    </div>
+
+    <!-- JOB CARDS -->
+    <div class="section" id="sec-jobcards">
+      <div class="filter-tabs" id="jobTabs">
+        <div class="tab active" onclick="filterJobs('All',this)">All</div>
+        <div class="tab" onclick="filterJobs('Received',this)">Received</div>
+        <div class="tab" onclick="filterJobs('In Progress',this)">In Progress</div>
+        <div class="tab" onclick="filterJobs('Waiting for Parts',this)">Waiting</div>
+        <div class="tab" onclick="filterJobs('Ready',this)">Ready</div>
+        <div class="tab" onclick="filterJobs('Delivered',this)">Delivered</div>
+        <div class="tab" onclick="filterJobs('Cancelled',this)">Cancelled</div>
+      </div>
+      <div class="filters">
+        <input type="date" class="filter-input" id="jobDateFrom" onchange="loadJobCards()">
+        <input type="date" class="filter-input" id="jobDateTo" onchange="loadJobCards()">
+        <input type="text" class="filter-input" id="jobMechFilter" placeholder="Mechanic..." oninput="loadJobCards()">
+      </div>
+      <div id="jobTable"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="section" id="sec-calendar">
+      <div class="filters" style="justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:8px;">
+          <button class="tab active" id="calViewWeek" onclick="calView='week';renderCal()">Week</button>
+          <button class="tab" id="calViewMonth" onclick="calView='month';renderCal()">Month</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-outline" onclick="calOffset--;renderCal()">◀</button>
+          <span id="calTitle" style="min-width:160px;text-align:center;font-weight:600;"></span>
+          <button class="btn-outline" onclick="calOffset++;renderCal()">▶</button>
+          <button class="btn btn-sm" onclick="calOffset=0;renderCal()">Today</button>
+        </div>
+        <input type="text" class="filter-input" id="calMechFilter" placeholder="Filter mechanic..." oninput="renderCal()">
+      </div>
+      <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;font-size:.78rem;">
+        <span style="color:#60a5fa">■ Received</span><span style="color:#fbbf24">■ In Progress</span><span style="color:#fb923c">■ Waiting</span>
+        <span style="color:#4ade80">■ Ready</span><span style="color:#2dd4bf">■ Delivered</span><span style="color:#f87171">■ Cancelled</span>
+      </div>
+      <div class="cal-header"><div class="cal-day-label">Sun</div><div class="cal-day-label">Mon</div><div class="cal-day-label">Tue</div><div class="cal-day-label">Wed</div><div class="cal-day-label">Thu</div><div class="cal-day-label">Fri</div><div class="cal-day-label">Sat</div></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="section" id="sec-customers">
+      <div class="filters"><input type="text" class="filter-input" id="custSearch" placeholder="Search customer..." oninput="loadCustomers()"></div>
+      <div id="custTable"></div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div class="section" id="sec-vehicles">
+      <div class="filters">
+        <input type="text" class="filter-input" id="vehSearch" placeholder="Search vehicle number..." oninput="loadVehicles()">
+      </div>
+      <div id="vehTable"></div>
+    </div>
+
+    <!-- MECHANICS -->
+    <div class="section" id="sec-mechanics">
+      <div id="mechTable"></div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="section" id="sec-services">
+      <div id="svcTable"></div>
+    </div>
+
+    <!-- SPARE PARTS -->
+    <div class="section" id="sec-spareparts">
+      <div class="filters">
+        <button class="tab active" id="partAllTab" onclick="filterParts('All',this)">All</button>
+        <button class="tab" onclick="filterParts('Engine',this)">Engine</button>
+        <button class="tab" onclick="filterParts('Brake',this)">Brake</button>
+        <button class="tab" onclick="filterParts('AC',this)">AC</button>
+        <button class="tab" onclick="filterParts('Electrical',this)">Electrical</button>
+        <button class="tab" id="lowStockTab" onclick="filterParts('lowstock',this)">⚠️ Low Stock</button>
+      </div>
+      <div id="partTable"></div>
+    </div>
+
+    <!-- INVOICES -->
+    <div class="section" id="sec-invoices">
+      <div class="filters">
+        <input type="date" class="filter-input" id="invDateFrom">
+        <input type="date" class="filter-input" id="invDateTo">
+        <select class="filter-input" id="invPayFilter" onchange="loadInvoices()">
+          <option value="">All Payment</option><option>Paid</option><option>Unpaid</option><option>Partially Paid</option>
+        </select>
+      </div>
+      <div id="invTable"></div>
+    </div>
+
+    <!-- SERVICE RECORDS -->
+    <div class="section" id="sec-records">
+      <div id="recTable"></div>
+    </div>
+
+    <!-- POS -->
+    <div class="section" id="sec-pos">
+      <div class="pos-session-bar">
+        <div id="posSessionInfo" style="color:var(--muted);">No active POS session</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" id="posOpenBtn" onclick="openPosSession()">🔓 Open POS</button>
+          <button class="btn-outline" id="posCloseBtn" onclick="closePosSession()" style="display:none">🔒 Close POS</button>
+        </div>
+      </div>
+      <div class="step-indicator">
+        <div class="step-dot active" id="step1dot">1</div>
+        <div style="align-self:center;color:var(--muted);margin:0 4px;">→</div>
+        <div class="step-dot" id="step2dot">2</div>
+        <div style="align-self:center;color:var(--muted);margin:0 4px;">→</div>
+        <div class="step-dot" id="step3dot">3</div>
+      </div>
+      <div class="pos-step active" id="posStep1">
+        <div class="pos-wrap">
+          <div class="pos-services">
+            <div class="filter-tabs" id="posCatTabs">
+              <div class="tab active" onclick="posCat='All';loadPosServices()">All</div>
+              <div class="tab" onclick="posCat='Engine Repair';loadPosServices()">Engine</div>
+              <div class="tab" onclick="posCat='Brake Service';loadPosServices()">Brake</div>
+              <div class="tab" onclick="posCat='AC Service';loadPosServices()">AC</div>
+              <div class="tab" onclick="posCat='Electrical';loadPosServices()">Electrical</div>
+              <div class="tab" onclick="posCat='Body Work';loadPosServices()">Body</div>
+              <div class="tab" onclick="posCat='Tyre';loadPosServices()">Tyres</div>
+            </div>
+            <div class="pos-service-grid" id="posSvcGrid"></div>
+          </div>
+          <div class="pos-cart">
+            <h3 style="margin-bottom:8px;">🛒 Cart</h3>
+            <div class="form-group"><label>Customer Name *</label><input type="text" id="posCustomer" placeholder="Customer name"></div>
+            <div class="form-group"><label>Phone *</label><input type="text" id="posPhone" placeholder="Phone number"></div>
+            <div class="form-group"><label>Vehicle Number *</label><input type="text" id="posVehicle" placeholder="Vehicle number"></div>
+            <div class="form-group"><label>Vehicle Make</label><select id="posMake"><option>Toyota</option><option>Honda</option><option>Maruti</option><option>Hyundai</option><option>Tata</option><option>Ford</option><option>Other</option></select></div>
+            <div class="cart-items" id="cartItems"><div style="color:var(--muted);text-align:center;padding:20px;">No items in cart</div></div>
+            <div class="cart-total">
+              <div class="receipt-line"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
+              <div class="receipt-line"><span>GST (18%)</span><span id="cartGst">₹0</span></div>
+              <div class="receipt-line" style="font-weight:700;font-size:1rem;"><span>Total</span><span id="cartTotal" style="color:var(--orange);">₹0</span></div>
+            </div>
+            <button class="btn" style="width:100%;margin-top:12px;" onclick="goToPayment()">Proceed to Payment →</button>
+          </div>
+        </div>
+      </div>
+      <div class="pos-step" id="posStep2">
+        <h3 style="margin-bottom:16px;">💳 Payment</h3>
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <button class="tab" id="payCash" onclick="selectPayMethod('Cash')">💵 Cash</button>
+          <button class="tab" id="payUPI" onclick="selectPayMethod('UPI')">📲 UPI</button>
+          <button class="tab" id="payCard" onclick="selectPayMethod('Card')">💳 Card</button>
+        </div>
+        <div id="payMethodArea"></div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+          <button class="btn-outline" onclick="goToStep(1)">← Back</button>
+          <button class="btn" onclick="confirmPayment()">Confirm Payment ✓</button>
+        </div>
+      </div>
+      <div class="pos-step" id="posStep3">
+        <h3 style="margin-bottom:16px;">🎉 Payment Confirmed!</h3>
+        <div class="receipt-area" id="receiptArea"></div>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+          <button class="btn" onclick="window.print()">🖨️ Print Receipt</button>
+          <button class="btn-outline" onclick="newPosTransaction()">New Transaction</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox">
+    <h2 id="modalTitle">New Job Card</h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="wa-popup" id="waPopup">
+  <div class="wa-box">
+    <h3 style="margin-bottom:8px;">📱 Send WhatsApp Update</h3>
+    <p style="color:var(--muted);font-size:.85rem;">Status changed to: <b id="waStatus" style="color:var(--orange);"></b></p>
+    <div class="wa-msg" id="waMsg"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="btn" onclick="sendWhatsApp()">📲 Send WhatsApp</button>
+      <button class="btn-outline" onclick="document.getElementById('waPopup').classList.remove('open')">Skip</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.addEventListener('DOMContentLoaded',function(){if(window.frappe){if(frappe.msgprint)frappe.msgprint=function(){};if(frappe.throw)frappe.throw=function(){};}});
+window.addEventListener('unhandledrejection',function(e){e.preventDefault();});
+
+function getCsrf(){const v=document.cookie.match('(^|;)\\s*csrf_token\\s*=\\s*([^;]+)');return v?v.pop():'';}
+async function post(method,params){
+  const fd=new URLSearchParams();
+  Object.entries(params||{}).forEach(([k,v])=>fd.append(k,typeof v==='object'?JSON.stringify(v):String(v)));
+  const r=await fetch('/api/method/'+method,{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded','X-Frappe-CSRF-Token':getCsrf()},body:fd});
+  const d=await r.json();return d.message;
+}
+async function getList(doctype,fields,filters,limit,orderBy){
+  return post('frappe.client.get_list',{doctype,fields:JSON.stringify(fields),filters:JSON.stringify(filters||[]),limit_page_length:limit||50,order_by:orderBy||'creation desc'});
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+
+let currentSection='dashboard';
+function showSection(s){
+  document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('active');
+  document.querySelectorAll('.sidebar-menu li').forEach((li,i)=>{
+    li.classList.remove('active');
+    const sections=['dashboard','appointments','jobcards','calendar','customers','vehicles','mechanics','services','spareparts','invoices','records','pos'];
+    if(sections[i]===s)li.classList.add('active');
+  });
+  currentSection=s;
+  const titles={dashboard:'Dashboard',appointments:'Appointments',jobcards:'Job Cards',calendar:'Calendar',customers:'Customers',vehicles:'Vehicles',mechanics:'Mechanics',services:'Services',spareparts:'Spare Parts',invoices:'Invoices',records:'Service Records',pos:'POS'};
+  document.getElementById('topbarTitle').textContent=titles[s]||s;
+  const loaders={dashboard:loadDashboard,appointments:loadAppointments,jobcards:loadJobCards,calendar:()=>renderCal(),customers:loadCustomers,vehicles:loadVehicles,mechanics:loadMechanics,services:loadServices,spareparts:loadParts,invoices:loadInvoices,records:loadRecords,pos:loadPos};
+  if(loaders[s])loaders[s]();
+}
+
+// DASHBOARD
+async function loadDashboard(){
+  try{
+    const stats=await post('car_app.api.get_dashboard_stats',{});
+    if(stats){
+      document.getElementById('statTodayJobs').textContent=stats.today_jobs||0;
+      document.getElementById('statRevenue').textContent='₹'+(stats.month_revenue||0).toLocaleString('en-IN');
+      document.getElementById('statVehicles').textContent=stats.total_vehicles||0;
+      document.getElementById('statCompleted').textContent=stats.completed_today||0;
+      document.getElementById('statPending').textContent=stats.pending_jobs||0;
+      document.getElementById('statLowStock').textContent=stats.low_stock_count||0;
+    }
+    const jobs=await getList('Car Job Card',['name','customer_name','vehicle_number','status','mechanic','grand_total','job_date'],[],10);
+    renderJobTable('dashJobTable',jobs);
+  }catch(e){console.log(e);}
+}
+
+function statusBadge(s){
+  const map={'Received':'received','In Progress':'inprogress','Waiting for Parts':'waiting','Ready':'ready','Delivered':'delivered','Cancelled':'cancelled','Paid':'paid','Unpaid':'unpaid','Partially Paid':'waiting','Booked':'received','Confirmed':'inprogress','Completed':'delivered'};
+  return `<span class="badge badge-${map[s]||'received'}">${s}</span>`;
+}
+
+function renderJobTable(containerId,jobs){
+  const c=document.getElementById(containerId);
+  if(!jobs||!jobs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No records found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Job ID</th><th>Customer</th><th>Vehicle</th><th>Status</th><th>Mechanic</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+  ${jobs.map(j=>`<tr>
+    <td><b>${j.name}</b></td>
+    <td>${j.customer_name||''}</td>
+    <td>${j.vehicle_number||''}</td>
+    <td><select class="status-sel" onchange="changeJobStatus('${j.name}',this.value,this)">
+      ${['Received','In Progress','Waiting for Parts','Ready','Delivered','Cancelled'].map(s=>`<option ${s===j.status?'selected':''}>${s}</option>`).join('')}
+    </select></td>
+    <td>${j.mechanic||'-'}</td>
+    <td>₹${(j.grand_total||0).toLocaleString('en-IN')}</td>
+    <td>${j.job_date||''}</td>
+    <td><button class="btn btn-sm" onclick="viewJob('${j.name}')">View</button> <button class="btn-outline" style="padding:5px 10px;font-size:.78rem;" onclick="editJob('${j.name}')">Edit</button></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+let currentJobName='', currentWaUrl='';
+async function changeJobStatus(jobName,newStatus,sel){
+  try{
+    const res=await post('car_app.api.update_job_status',{job_name:jobName,new_status:newStatus});
+    showToast('Status updated to '+newStatus);
+    if(res&&res.whatsapp_url){
+      currentWaUrl=res.whatsapp_url;
+      currentJobName=jobName;
+      document.getElementById('waStatus').textContent=newStatus;
+      const url=new URL(res.whatsapp_url);
+      document.getElementById('waMsg').textContent=decodeURIComponent(url.searchParams.get('text')||'');
+      document.getElementById('waPopup').classList.add('open');
+    }
+  }catch(e){showToast('Error updating status');}
+}
+function sendWhatsApp(){window.open(currentWaUrl,'_blank');document.getElementById('waPopup').classList.remove('open');}
+
+// JOB CARDS
+let jobStatusFilter='All';
+function filterJobs(s,el){
+  jobStatusFilter=s;
+  document.querySelectorAll('#jobTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadJobCards();
+}
+async function loadJobCards(){
+  const filters=[];
+  if(jobStatusFilter!=='All')filters.push(['status','=',jobStatusFilter]);
+  const mech=document.getElementById('jobMechFilter')?.value?.trim();
+  if(mech)filters.push(['mechanic','like','%'+mech+'%']);
+  const jobs=await getList('Car Job Card',['name','customer_name','customer_phone','vehicle_number','vehicle_make','status','mechanic','grand_total','job_date','services'],filters,100);
+  renderJobTable('jobTable',jobs);
+}
+
+// APPOINTMENTS
+let aptStatusFilter='All';
+function filterApt(s,el){
+  aptStatusFilter=s;
+  document.querySelectorAll('#aptTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadAppointments();
+}
+async function loadAppointments(){
+  const filters=[];
+  if(aptStatusFilter!=='All')filters.push(['status','=',aptStatusFilter]);
+  const d=document.getElementById('aptDateFilter')?.value;
+  if(d)filters.push(['appointment_date','=',d]);
+  const apts=await getList('Car Appointment',['name','customer_name','customer_phone','vehicle_number','service_type','mechanic','appointment_date','appointment_time','status'],filters,100);
+  const c=document.getElementById('aptTable');
+  if(!apts||!apts.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No appointments found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Vehicle</th><th>Service</th><th>Mechanic</th><th>Date</th><th>Time</th><th>Status</th></tr></thead><tbody>
+  ${apts.map(a=>`<tr><td><b>${a.name}</b></td><td>${a.customer_name||''}</td><td>${a.customer_phone||''}</td><td>${a.vehicle_number||''}</td><td>${a.service_type||''}</td><td>${a.mechanic||'-'}</td><td>${a.appointment_date||''}</td><td>${a.appointment_time||''}</td><td>${statusBadge(a.status)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// CUSTOMERS
+async function loadCustomers(){
+  const search=document.getElementById('custSearch')?.value?.trim();
+  const filters=search?[['full_name','like','%'+search+'%']]:[];
+  const custs=await getList('Car Customer',['name','full_name','phone','email','total_vehicles','total_visits','loyalty_points'],filters,100);
+  const c=document.getElementById('custTable');
+  if(!custs||!custs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No customers found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Vehicles</th><th>Visits</th><th>Points</th></tr></thead><tbody>
+  ${custs.map(c=>`<tr><td><b>${c.name}</b></td><td>${c.full_name||''}</td><td>${c.phone||''}</td><td>${c.email||''}</td><td>${c.total_vehicles||0}</td><td>${c.total_visits||0}</td><td>⭐${c.loyalty_points||0}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// VEHICLES
+async function loadVehicles(){
+  const search=document.getElementById('vehSearch')?.value?.trim();
+  const filters=search?[['vehicle_number','like','%'+search+'%']]:[];
+  const vehs=await getList('Car Vehicle',['name','owner_name','vehicle_number','make','model','year','fuel_type','insurance_expiry','last_service_date','next_service_date'],filters,100);
+  const c=document.getElementById('vehTable');
+  if(!vehs||!vehs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No vehicles found</div>';return;}
+  const today=new Date();
+  c.innerHTML=`<table><thead><tr><th>ID</th><th>Vehicle No.</th><th>Owner</th><th>Make/Model</th><th>Year</th><th>Fuel</th><th>Insurance</th><th>Next Service</th></tr></thead><tbody>
+  ${vehs.map(v=>{
+    let insColor='var(--text)';
+    if(v.insurance_expiry){const d=new Date(v.insurance_expiry);const diff=(d-today)/(1000*60*60*24);if(diff<0)insColor='#f87171';else if(diff<30)insColor='#fbbf24';}
+    return `<tr><td><b>${v.name}</b></td><td>${v.vehicle_number||''}</td><td>${v.owner_name||''}</td><td>${v.make||''} ${v.model||''}</td><td>${v.year||''}</td><td>${v.fuel_type||''}</td><td style="color:${insColor}">${v.insurance_expiry||'-'}</td><td>${v.next_service_date||'-'}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+// MECHANICS
+async function loadMechanics(){
+  const mechs=await getList('Car Mechanic',['name','mechanic_name','phone','specialization','experience_years','shift','total_jobs','is_active'],[],100);
+  const c=document.getElementById('mechTable');
+  if(!mechs||!mechs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No mechanics found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Name</th><th>Phone</th><th>Specialization</th><th>Experience</th><th>Shift</th><th>Total Jobs</th><th>Active</th></tr></thead><tbody>
+  ${mechs.map(m=>`<tr><td><b>${m.mechanic_name}</b></td><td>${m.phone||''}</td><td>${m.specialization||''}</td><td>${m.experience_years||0} yrs</td><td>${m.shift||''}</td><td>${m.total_jobs||0}</td><td>${m.is_active?'✅':'❌'}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// SERVICES
+async function loadServices(){
+  const svcs=await getList('Car Service',['name','service_name','category','price','duration_minutes','is_active'],[],100);
+  const c=document.getElementById('svcTable');
+  if(!svcs||!svcs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No services found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Service</th><th>Category</th><th>Price</th><th>Duration</th><th>Active</th></tr></thead><tbody>
+  ${svcs.map(s=>`<tr><td><b>${s.service_name}</b></td><td>${s.category||''}</td><td>₹${(s.price||0).toLocaleString('en-IN')}</td><td>${s.duration_minutes||0} min</td><td>${s.is_active?'✅':'❌'}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// SPARE PARTS
+let partCatFilter='All', showLowStock=false;
+function filterParts(cat,el){
+  if(cat==='lowstock'){showLowStock=true;partCatFilter='All';}
+  else{showLowStock=false;partCatFilter=cat;}
+  document.querySelectorAll('#sec-spareparts .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadParts();
+}
+async function loadParts(){
+  const params={};
+  if(partCatFilter&&partCatFilter!=='All')params.category=partCatFilter;
+  if(showLowStock)params.low_stock=true;
+  const parts=await post('car_app.api.get_spare_parts',params);
+  const c=document.getElementById('partTable');
+  if(!parts||!parts.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No parts found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Part</th><th>Category</th><th>Brand</th><th>Price</th><th>Stock</th><th>Reorder</th><th>Unit</th><th>Supplier</th></tr></thead><tbody>
+  ${parts.map(p=>{
+    const low=p.stock_qty<=p.reorder_level;
+    return `<tr><td><b>${p.part_name}</b>${low?'<span class="low-stock-badge" style="margin-left:6px;">Low</span>':''}</td><td>${p.category||''}</td><td>${p.brand||''}</td><td>₹${(p.price||0).toLocaleString('en-IN')}</td><td style="color:${low?'#f87171':'var(--text)'}">${p.stock_qty||0}</td><td>${p.reorder_level||0}</td><td>${p.unit||''}</td><td>${p.supplier_name||'-'}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+// INVOICES
+async function loadInvoices(){
+  const filters=[];
+  const pay=document.getElementById('invPayFilter')?.value;
+  if(pay)filters.push(['payment_status','=',pay]);
+  const invs=await getList('Car Invoice',['name','customer_name','vehicle_number','invoice_date','services','grand_total','payment_status','payment_method'],filters,100);
+  const c=document.getElementById('invTable');
+  if(!invs||!invs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No invoices found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Invoice</th><th>Customer</th><th>Vehicle</th><th>Date</th><th>Amount</th><th>Status</th><th>Method</th></tr></thead><tbody>
+  ${invs.map(i=>`<tr><td><b>${i.name}</b></td><td>${i.customer_name||''}</td><td>${i.vehicle_number||''}</td><td>${i.invoice_date||''}</td><td>₹${(i.grand_total||0).toLocaleString('en-IN')}</td><td>${statusBadge(i.payment_status)}</td><td>${i.payment_method||''}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// SERVICE RECORDS
+async function loadRecords(){
+  const recs=await getList('Car Service Record',['name','vehicle_number','owner_name','service_date','services_done','mechanic','total_cost','next_service_date'],[],100);
+  const c=document.getElementById('recTable');
+  if(!recs||!recs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No records found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>ID</th><th>Vehicle</th><th>Owner</th><th>Date</th><th>Services</th><th>Mechanic</th><th>Cost</th><th>Next Service</th></tr></thead><tbody>
+  ${recs.map(r=>`<tr><td><b>${r.name}</b></td><td>${r.vehicle_number||''}</td><td>${r.owner_name||''}</td><td>${r.service_date||''}</td><td>${r.services_done||''}</td><td>${r.mechanic||'-'}</td><td>₹${(r.total_cost||0).toLocaleString('en-IN')}</td><td>${r.next_service_date||'-'}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// CALENDAR
+let calView='week', calOffset=0, allJobs=[];
+const STATUS_COLORS={'Received':'#60a5fa','In Progress':'#fbbf24','Waiting for Parts':'#fb923c','Ready':'#4ade80','Delivered':'#2dd4bf','Cancelled':'#f87171'};
+async function renderCal(){
+  const today=new Date();
+  let startDate,endDate;
+  if(calView==='week'){
+    const day=today.getDay();
+    startDate=new Date(today);startDate.setDate(today.getDate()-day+calOffset*7);
+    endDate=new Date(startDate);endDate.setDate(startDate.getDate()+6);
+  }else{
+    startDate=new Date(today.getFullYear(),today.getMonth()+calOffset,1);
+    endDate=new Date(today.getFullYear(),today.getMonth()+calOffset+1,0);
+  }
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('calTitle').textContent=calView==='week'?`${fmt(startDate)} – ${fmt(endDate)}`:startDate.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  try{
+    allJobs=await getList('Car Job Card',['name','customer_name','vehicle_number','status','mechanic','job_date','services'],[['job_date','between',[fmt(startDate),fmt(endDate)]]],200);
+  }catch(e){allJobs=[];}
+  const mechF=document.getElementById('calMechFilter')?.value?.toLowerCase()||'';
+  const jobs=mechF?allJobs.filter(j=>j.mechanic&&j.mechanic.toLowerCase().includes(mechF)):allJobs;
+  const grid=document.getElementById('calGrid');
+  const cells=[];
+  const cur=new Date(startDate);
+  while(cur<=endDate){
+    cells.push(new Date(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+  const todayStr=fmt(today);
+  grid.style.gridTemplateColumns=`repeat(${calView==='week'?7:7},1fr)`;
+  grid.innerHTML=cells.map(d=>{
+    const ds=fmt(d);
+    const dayJobs=jobs.filter(j=>j.job_date===ds);
+    return `<div class="cal-cell${ds===todayStr?' today':''}">
+      <div class="cal-cell-date" style="${ds===todayStr?'color:var(--orange);font-weight:700':''}">${d.getDate()}</div>
+      ${dayJobs.map(j=>`<div class="cal-event" style="background:${STATUS_COLORS[j.status]||'#60a5fa'}22;color:${STATUS_COLORS[j.status]||'#60a5fa'};border-left:2px solid ${STATUS_COLORS[j.status]||'#60a5fa'}" onclick="viewJob('${j.name}')">${j.vehicle_number||j.name}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// POS
+let cart=[], posCat='All', activeSession=null, payMethod='Cash', posServices=[];
+async function loadPos(){
+  try{
+    activeSession=await post('car_app.api.get_active_pos_session',{});
+    updateSessionBar();
+    loadPosServices();
+  }catch(e){console.log(e);}
+}
+function updateSessionBar(){
+  const info=document.getElementById('posSessionInfo');
+  const openBtn=document.getElementById('posOpenBtn');
+  const closeBtn=document.getElementById('posCloseBtn');
+  if(activeSession){
+    info.innerHTML=`<span style="color:#4ade80">🟢 Session Open</span> · Opened by: ${activeSession.opened_by||'?'} · Opening Cash: ₹${activeSession.opening_cash||0}`;
+    openBtn.style.display='none';closeBtn.style.display='block';
+  }else{
+    info.textContent='No active POS session';
+    openBtn.style.display='block';closeBtn.style.display='none';
+  }
+}
+async function openPosSession(){
+  const cash=prompt('Enter opening cash amount:','0');
+  if(cash===null)return;
+  const res=await post('car_app.api.open_pos_session',{opening_cash:parseFloat(cash)||0,opened_by:'Admin'});
+  activeSession=await post('car_app.api.get_active_pos_session',{});
+  updateSessionBar();showToast('POS Session Opened!');
+}
+async function closePosSession(){
+  if(!activeSession){showToast('No active session');return;}
+  const cash=prompt('Enter closing cash amount:','0');
+  if(cash===null)return;
+  const res=await post('car_app.api.close_pos_session',{session_name:activeSession.name,closing_cash:parseFloat(cash)||0});
+  showToast(`Session closed! Total Sales: ₹${res.total_sales||0}`);
+  activeSession=null;updateSessionBar();
+}
+async function loadPosServices(){
+  const params=posCat&&posCat!=='All'?{category:posCat}:{};
+  posServices=await post('car_app.api.get_services',params)||[];
+  const grid=document.getElementById('posSvcGrid');
+  grid.innerHTML=posServices.map(s=>`<div class="pos-svc-btn" onclick="addToCart(${JSON.stringify(s).replace(/'/g,'&apos;')})">
+    <div class="pos-svc-name">${s.service_name}</div>
+    <div class="pos-svc-price">₹${(s.price||0).toLocaleString('en-IN')}</div>
+    <div style="font-size:.72rem;color:var(--muted)">${s.category||''}</div>
+  </div>`).join('');
+}
+function addToCart(svc){
+  const ex=cart.find(i=>i.name===svc.name);
+  if(ex){showToast(svc.service_name+' already in cart');return;}
+  cart.push({...svc,qty:1});
+  renderCart();
+}
+function removeFromCart(idx){cart.splice(idx,1);renderCart();}
+function renderCart(){
+  const c=document.getElementById('cartItems');
+  if(!cart.length){c.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;">No items in cart</div>';updateCartTotals();return;}
+  c.innerHTML=cart.map((item,i)=>`<div class="cart-item">
+    <div><div style="font-size:.88rem;font-weight:600">${item.service_name}</div><div style="font-size:.75rem;color:var(--muted)">${item.category||''}</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="color:var(--orange);font-weight:700">₹${(item.price||0).toLocaleString('en-IN')}</span>
+      <button onclick="removeFromCart(${i})" style="background:rgba(239,68,68,.2);border:none;color:#f87171;border-radius:4px;padding:2px 8px;cursor:pointer">×</button>
+    </div>
+  </div>`).join('');
+  updateCartTotals();
+}
+function updateCartTotals(){
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const gst=Math.round(sub*0.18);
+  document.getElementById('cartSubtotal').textContent='₹'+sub.toLocaleString('en-IN');
+  document.getElementById('cartGst').textContent='₹'+gst.toLocaleString('en-IN');
+  document.getElementById('cartTotal').textContent='₹'+(sub+gst).toLocaleString('en-IN');
+}
+function goToPayment(){
+  if(!cart.length){showToast('Add services to cart');return;}
+  if(!document.getElementById('posCustomer').value.trim()){showToast('Enter customer name');return;}
+  if(!document.getElementById('posVehicle').value.trim()){showToast('Enter vehicle number');return;}
+  goToStep(2);selectPayMethod('Cash');
+}
+function goToStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('posStep'+i).classList.toggle('active',i===n);
+    const dot=document.getElementById('step'+i+'dot');
+    dot.classList.remove('active','done');
+    if(i===n)dot.classList.add('active');
+    else if(i<n)dot.classList.add('done');
+  });
+}
+function selectPayMethod(m){
+  payMethod=m;
+  document.querySelectorAll('#posStep2 .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pay'+m).classList.add('active');
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const total=sub+Math.round(sub*0.18);
+  const area=document.getElementById('payMethodArea');
+  if(m==='Cash'){
+    area.innerHTML=`<div class="form-group"><label>Amount Tendered (₹)</label><input type="number" id="cashTendered" value="${total}" oninput="calcChange()"></div><div style="font-size:1.2rem;font-weight:700;margin-top:8px;">Change: <span id="changeAmt" style="color:var(--orange)">₹0</span></div>`;
+  }else if(m==='UPI'){
+    area.innerHTML=`<div style="text-align:center;padding:20px;"><div style="font-size:3rem">📲</div><div style="font-size:1.3rem;font-weight:700;margin:8px 0;">UPI ID: <span style="color:var(--orange)" id="posUpiId">autocare@upi</span></div><div style="font-size:1.5rem;font-weight:800;color:var(--orange);">₹${total.toLocaleString('en-IN')}</div></div>`;
+    post('car_app.api.get_settings',{}).then(s=>{if(s&&s.upi_id)document.getElementById('posUpiId').textContent=s.upi_id;}).catch(()=>{});
+  }else{
+    area.innerHTML=`<div style="text-align:center;padding:20px;"><div style="font-size:3rem">💳</div><div style="font-size:1.5rem;font-weight:800;color:var(--orange);margin-top:12px;">₹${total.toLocaleString('en-IN')}</div><p style="color:var(--muted);margin-top:8px;">Swipe or tap card on terminal</p></div>`;
+  }
+}
+function calcChange(){
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const total=sub+Math.round(sub*0.18);
+  const tendered=parseFloat(document.getElementById('cashTendered')?.value)||0;
+  document.getElementById('changeAmt').textContent='₹'+(tendered-total).toLocaleString('en-IN');
+}
+async function confirmPayment(){
+  const customer=document.getElementById('posCustomer').value.trim();
+  const phone=document.getElementById('posPhone').value.trim();
+  const vehicle=document.getElementById('posVehicle').value.trim();
+  const make=document.getElementById('posMake').value;
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const gst=Math.round(sub*0.18);
+  const total=sub+gst;
+  try{
+    const inv=await post('frappe.client.insert',{doc:JSON.stringify({
+      doctype:'Car Invoice',customer_name:customer,vehicle_number:vehicle,
+      invoice_date:new Date().toISOString().split('T')[0],
+      services:cart.map(i=>i.service_name).join(', '),
+      labour_charge:sub,gst_amount:gst,grand_total:total,
+      payment_status:'Paid',payment_method:payMethod
+    })});
+    renderReceipt(inv,customer,vehicle,sub,gst,total);
+    goToStep(3);
+  }catch(e){showToast('Error creating invoice');}
+}
+function renderReceipt(inv,customer,vehicle,sub,gst,total){
+  const r=document.getElementById('receiptArea');
+  r.innerHTML=`<h3>AutoCare Pro</h3><div style="text-align:center;font-size:.75rem;margin-bottom:8px;">Tax Invoice</div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-line"><span>Invoice:</span><span>${inv?.name||'CINV-XXXX'}</span></div>
+  <div class="receipt-line"><span>Date:</span><span>${new Date().toLocaleDateString('en-IN')}</span></div>
+  <div class="receipt-line"><span>Customer:</span><span>${customer}</span></div>
+  <div class="receipt-line"><span>Vehicle:</span><span>${vehicle}</span></div>
+  <div class="receipt-divider"></div>
+  ${cart.map(i=>`<div class="receipt-line"><span>${i.service_name}</span><span>₹${(i.price||0).toLocaleString('en-IN')}</span></div>`).join('')}
+  <div class="receipt-divider"></div>
+  <div class="receipt-line"><span>Subtotal</span><span>₹${sub.toLocaleString('en-IN')}</span></div>
+  <div class="receipt-line"><span>GST (18%)</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-line" style="font-weight:700;font-size:1rem"><span>TOTAL</span><span>₹${total.toLocaleString('en-IN')}</span></div>
+  <div class="receipt-line"><span>Payment</span><span>${payMethod}</span></div>
+  <div class="receipt-divider"></div>
+  <div style="text-align:center;font-size:.75rem;margin-top:8px;">Thank you! Visit again 🚗</div>`;
+}
+function newPosTransaction(){cart=[];renderCart();goToStep(1);}
+
+// MODALS
+function openModal(type){
+  document.getElementById('modalOverlay').classList.add('open');
+  if(type==='newJobCard'){
+    document.getElementById('modalTitle').textContent='New Job Card';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Customer Name *</label><input id="m_cust" placeholder="Customer name"></div><div class="form-group"><label>Phone</label><input id="m_phone" placeholder="Phone"></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input id="m_veh" placeholder="TN01AB1234"></div><div class="form-group"><label>Vehicle Make</label><input id="m_make" placeholder="Toyota/Honda..."></div></div>
+      <div class="form-group"><label>Vehicle Model</label><input id="m_model" placeholder="e.g. Swift, Innova"></div>
+      <div class="form-group"><label>Services (comma separated) *</label><input id="m_svc" placeholder="Oil Change, AC Service..."></div>
+      <div class="form-row"><div class="form-group"><label>Mechanic</label><input id="m_mech" placeholder="Mechanic name"></div><div class="form-group"><label>Odometer In</label><input type="number" id="m_odo" placeholder="km"></div></div>
+      <div class="form-group"><label>Customer Complaint</label><textarea id="m_complaint" rows="2" placeholder="Describe the issue..."></textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="submitNewJob()">Create Job Card</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+  }else if(type==='newAppointment'){
+    document.getElementById('modalTitle').textContent='New Appointment';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Customer Name *</label><input id="a_cust" placeholder="Customer name"></div><div class="form-group"><label>Phone</label><input id="a_phone"></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input id="a_veh"></div><div class="form-group"><label>Vehicle Make</label><input id="a_make"></div></div>
+      <div class="form-group"><label>Service Type</label><input id="a_svc" placeholder="Oil Change, AC Service..."></div>
+      <div class="form-row"><div class="form-group"><label>Date *</label><input type="date" id="a_date"></div><div class="form-group"><label>Time</label><input type="time" id="a_time" value="10:00"></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="submitNewApt()">Book Appointment</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+  }
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+async function submitNewJob(){
+  const name=document.getElementById('m_cust')?.value?.trim();
+  const vehicle=document.getElementById('m_veh')?.value?.trim();
+  if(!name||!vehicle){showToast('Name and vehicle required');return;}
+  try{
+    const res=await post('car_app.api.create_job_card',{
+      customer_name:name,customer_phone:document.getElementById('m_phone')?.value||'',
+      vehicle_number:vehicle,vehicle_make:document.getElementById('m_make')?.value||'',
+      vehicle_model:document.getElementById('m_model')?.value||'',
+      services:document.getElementById('m_svc')?.value||'',
+      mechanic:document.getElementById('m_mech')?.value||'',
+      odometer_in:document.getElementById('m_odo')?.value||0,
+      customer_complaint:document.getElementById('m_complaint')?.value||''
+    });
+    showToast('✅ Job Card created: '+res.name);
+    closeModal();loadJobCards();
+  }catch(e){showToast('Error creating job card');}
+}
+async function submitNewApt(){
+  const name=document.getElementById('a_cust')?.value?.trim();
+  const date=document.getElementById('a_date')?.value;
+  if(!name||!date){showToast('Name and date required');return;}
+  try{
+    const res=await post('car_app.api.book_appointment',{
+      customer_name:name,customer_phone:document.getElementById('a_phone')?.value||'',
+      vehicle_number:document.getElementById('a_veh')?.value||'',
+      vehicle_make:document.getElementById('a_make')?.value||'',
+      service_type:document.getElementById('a_svc')?.value||'',
+      appointment_date:date,appointment_time:document.getElementById('a_time')?.value||'10:00'
+    });
+    showToast('✅ Appointment booked: '+res.name);
+    closeModal();loadAppointments();
+  }catch(e){showToast('Error booking appointment');}
+}
+async function viewJob(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Job Card',name});
+    document.getElementById('modalTitle').textContent='Job Card: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Customer</label><div style="font-weight:600">${doc.customer_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Phone</label><div>${doc.customer_phone||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Vehicle</label><div style="font-weight:600">${doc.vehicle_number||''} (${doc.vehicle_make||''} ${doc.vehicle_model||''})</div></div><div><label style="color:var(--muted);font-size:.8rem">Status</label><div>${statusBadge(doc.status)}</div></div></div>
+      <div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Services</label><div>${doc.services||'-'}</div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Mechanic</label><div>${doc.mechanic||'-'}</div></div><div><label style="color:var(--muted);font-size:.8rem">Odometer In</label><div>${doc.odometer_in||0} km</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Estimated</label><div>₹${(doc.estimated_amount||0).toLocaleString('en-IN')}</div></div><div><label style="color:var(--muted);font-size:.8rem">Grand Total</label><div style="font-weight:700;color:var(--orange)">₹${(doc.grand_total||0).toLocaleString('en-IN')}</div></div></div>
+      ${doc.customer_complaint?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Complaint</label><div>${doc.customer_complaint}</div></div>`:''}
+      ${doc.work_done?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Work Done</label><div>${doc.work_done}</div></div>`:''}
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading job card');}
+}
+async function editJob(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Job Card',name});
+    document.getElementById('modalTitle').textContent='Edit Job: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-group"><label>Services</label><input id="ej_svc" value="${doc.services||''}"></div>
+      <div class="form-row"><div class="form-group"><label>Mechanic</label><input id="ej_mech" value="${doc.mechanic||''}"></div><div class="form-group"><label>Status</label><select id="ej_status">${['Received','In Progress','Waiting for Parts','Ready','Delivered','Cancelled'].map(s=>`<option ${s===doc.status?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Labour Charge</label><input type="number" id="ej_labour" value="${doc.labour_charge||0}"></div><div class="form-group"><label>Parts Cost</label><input type="number" id="ej_parts" value="${doc.parts_cost||0}"></div></div>
+      <div class="form-group"><label>Work Done</label><textarea id="ej_work" rows="2">${doc.work_done||''}</textarea></div>
+      <div class="form-group"><label>Delivery Date</label><input type="date" id="ej_deldate" value="${doc.delivery_date||''}"></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveEditJob('${name}')">Save Changes</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading job');}
+}
+async function saveEditJob(name){
+  try{
+    const labour=parseFloat(document.getElementById('ej_labour')?.value)||0;
+    const parts=parseFloat(document.getElementById('ej_parts')?.value)||0;
+    const newStatus=document.getElementById('ej_status')?.value;
+    await post('frappe.client.set_value',{doctype:'Car Job Card',name,fieldname:JSON.stringify({
+      services:document.getElementById('ej_svc')?.value||'',
+      mechanic:document.getElementById('ej_mech')?.value||'',
+      status:newStatus,
+      labour_charge:labour,parts_cost:parts,grand_total:labour+parts,
+      work_done:document.getElementById('ej_work')?.value||'',
+      delivery_date:document.getElementById('ej_deldate')?.value||''
+    })});
+    showToast('Job Card updated!');closeModal();
+    if(currentSection==='jobcards')loadJobCards();
+    else if(currentSection==='dashboard')loadDashboard();
+  }catch(e){showToast('Error saving job card');}
+}
+
+// Init
+loadDashboard();
+</script>
+</body>
+</html>

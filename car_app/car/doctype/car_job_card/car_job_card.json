@@ -1,0 +1,200 @@
+{
+ "name": "Car Job Card",
+ "module": "Car",
+ "doctype": "DocType",
+ "autoname": "format:CJOB-.YYYY.-.#####",
+ "is_submittable": 0,
+ "issingle": 0,
+ "permissions": [
+  {
+   "role": "All",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 0,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0,
+   "report": 1,
+   "export": 1,
+   "import": 0,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "submit": 0,
+   "cancel": 0,
+   "amend": 0,
+   "report": 1,
+   "export": 1,
+   "import": 1,
+   "share": 1,
+   "print": 1,
+   "email": 1
+  }
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "reqd": 1,
+   "idx": 1
+  },
+  {
+   "fieldname": "customer_phone",
+   "fieldtype": "Data",
+   "label": "Customer Phone",
+   "idx": 2
+  },
+  {
+   "fieldname": "vehicle_number",
+   "fieldtype": "Data",
+   "label": "Vehicle Number",
+   "idx": 3
+  },
+  {
+   "fieldname": "vehicle_make",
+   "fieldtype": "Data",
+   "label": "Vehicle Make",
+   "idx": 4
+  },
+  {
+   "fieldname": "vehicle_model",
+   "fieldtype": "Data",
+   "label": "Vehicle Model",
+   "idx": 5
+  },
+  {
+   "fieldname": "odometer_in",
+   "fieldtype": "Float",
+   "label": "Odometer In",
+   "idx": 6
+  },
+  {
+   "fieldname": "odometer_out",
+   "fieldtype": "Float",
+   "label": "Odometer Out",
+   "idx": 7
+  },
+  {
+   "fieldname": "mechanic",
+   "fieldtype": "Data",
+   "label": "Mechanic",
+   "idx": 8
+  },
+  {
+   "fieldname": "services",
+   "fieldtype": "Data",
+   "label": "Services (comma separated)",
+   "idx": 9
+  },
+  {
+   "fieldname": "job_date",
+   "fieldtype": "Date",
+   "label": "Job Date",
+   "idx": 10
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date",
+   "idx": 11
+  },
+  {
+   "fieldname": "delivery_time",
+   "fieldtype": "Time",
+   "label": "Delivery Time",
+   "idx": 12
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nReceived\nIn Progress\nWaiting for Parts\nReady\nDelivered\nCancelled",
+   "default": "Received",
+   "idx": 13
+  },
+  {
+   "fieldname": "estimated_amount",
+   "fieldtype": "Currency",
+   "label": "Estimated Amount",
+   "idx": 14
+  },
+  {
+   "fieldname": "labour_charge",
+   "fieldtype": "Currency",
+   "label": "Labour Charge",
+   "idx": 15
+  },
+  {
+   "fieldname": "parts_cost",
+   "fieldtype": "Currency",
+   "label": "Parts Cost",
+   "idx": 16
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Grand Total",
+   "idx": 17
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "options": "\nUnpaid\nPaid\nPartially Paid",
+   "default": "Unpaid",
+   "idx": 18
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "\nCash\nUPI\nCard",
+   "idx": 19
+  },
+  {
+   "fieldname": "customer_complaint",
+   "fieldtype": "Text",
+   "label": "Customer Complaint",
+   "idx": 20
+  },
+  {
+   "fieldname": "work_done",
+   "fieldtype": "Text",
+   "label": "Work Done",
+   "idx": 21
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes",
+   "idx": 22
+  },
+  {
+   "fieldname": "inspection_notes",
+   "fieldtype": "Text",
+   "label": "Inspection Notes",
+   "idx": 23
+  }
+ ],
+ "creation": "2024-01-01 00:00:00.000000",
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "owner": "Administrator",
+ "docstatus": 0,
+ "idx": 0,
+ "track_changes": 0,
+ "track_views": 0,
+ "in_create": 0,
+ "allow_import": 1,
+ "allow_copy": 1,
+ "hide_toolbar": 0
+}
