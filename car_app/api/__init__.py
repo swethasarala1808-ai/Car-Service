@@ -34,26 +34,34 @@ def get_spare_parts(category=None, low_stock=False):
 
 @frappe.whitelist(allow_guest=True)
 def get_dashboard_stats():
-    from frappe.utils import today, getdate, get_first_day, get_last_day
-    td = today()
-    first = get_first_day(td)
-    last = get_last_day(td)
-    today_jobs = frappe.db.count("Car Job Card", {"job_date": td})
-    completed_today = frappe.db.count("Car Job Card", {"job_date": td, "status": "Delivered"})
-    pending_jobs = frappe.db.count("Car Job Card", {"status": ["in", ["Received", "In Progress", "Waiting for Parts"]]})
-    total_vehicles = frappe.db.count("Car Vehicle")
-    invoices = frappe.get_all("Car Invoice", filters={"invoice_date": ["between", [first, last]], "payment_status": "Paid"},
-        fields=["grand_total"])
-    month_revenue = sum(i.get("grand_total", 0) or 0 for i in invoices)
-    low_stock = frappe.db.sql("SELECT COUNT(*) FROM `tabCar Spare Part` WHERE stock_qty <= reorder_level AND is_active=1")[0][0]
-    return {
-        "today_jobs": today_jobs,
-        "month_revenue": month_revenue,
-        "total_vehicles": total_vehicles,
-        "completed_today": completed_today,
-        "pending_jobs": pending_jobs,
-        "low_stock_count": low_stock
-    }
+    try:
+        from frappe.utils import today, get_first_day, get_last_day
+        td = today()
+        first = get_first_day(td)
+        last = get_last_day(td)
+        today_jobs = frappe.db.count("Car Job Card", {"job_date": td})
+        completed_today = frappe.db.count("Car Job Card", {"job_date": td, "status": "Delivered"})
+        pending_jobs = frappe.db.count("Car Job Card", {"status": ["in", ["Received", "In Progress", "Waiting for Parts"]]})
+        total_vehicles = frappe.db.count("Car Vehicle")
+        invoices = frappe.get_all("Car Invoice",
+            filters={"invoice_date": ["between", [first, last]], "payment_status": "Paid"},
+            fields=["grand_total"])
+        month_revenue = sum(i.get("grand_total", 0) or 0 for i in invoices)
+        try:
+            low_stock = frappe.db.sql("SELECT COUNT(*) FROM `tabCar Spare Part` WHERE stock_qty <= reorder_level AND is_active=1")[0][0]
+        except Exception:
+            low_stock = 0
+        return {
+            "today_jobs": today_jobs,
+            "month_revenue": month_revenue,
+            "total_vehicles": total_vehicles,
+            "completed_today": completed_today,
+            "pending_jobs": pending_jobs,
+            "low_stock_count": low_stock
+        }
+    except Exception as e:
+        frappe.log_error(str(e), "Dashboard Stats Error")
+        return {"today_jobs":0,"month_revenue":0,"total_vehicles":0,"completed_today":0,"pending_jobs":0,"low_stock_count":0}
 
 @frappe.whitelist(allow_guest=True)
 def book_appointment(customer_name, customer_phone, vehicle_number, vehicle_make, service_type, appointment_date, appointment_time, mechanic=None, notes=None):
@@ -149,28 +157,42 @@ def get_vehicle_history(vehicle_number):
 
 @frappe.whitelist(allow_guest=True)
 def open_pos_session(opening_cash=0, opened_by=None):
-    from frappe.utils import today, now_datetime
-    existing = frappe.get_all("Car POS Session", filters={"status": "Open", "session_date": today()}, limit=1)
-    if existing:
-        return {"name": existing[0].name, "status": "already_open"}
-    doc = frappe.get_doc({
-        "doctype": "Car POS Session",
-        "session_date": today(),
-        "opened_by": opened_by or frappe.session.user,
-        "opening_time": str(now_datetime().time()),
-        "opening_cash": float(opening_cash or 0),
-        "status": "Open"
-    })
-    doc.insert(ignore_permissions=True)
-    frappe.db.commit()
-    return {"name": doc.name, "status": "opened"}
+    try:
+        from frappe.utils import today, now_datetime
+        existing = frappe.get_all("Car POS Session", filters={"status": "Open"}, limit=1)
+        if existing:
+            return {"name": existing[0].name, "status": "already_open"}
+        now = now_datetime()
+        opening_time = now.strftime("%H:%M:%S")
+        user = opened_by or "Admin"
+        try:
+            user = frappe.session.user or "Admin"
+        except Exception:
+            pass
+        doc = frappe.get_doc({
+            "doctype": "Car POS Session",
+            "session_date": today(),
+            "opened_by": user,
+            "opening_time": opening_time,
+            "opening_cash": float(opening_cash or 0),
+            "status": "Open"
+        })
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+        return {"name": doc.name, "status": "opened"}
+    except Exception as e:
+        frappe.log_error(str(e), "POS Open Error")
+        return {"error": str(e)}
 
 @frappe.whitelist(allow_guest=True)
 def get_active_pos_session():
-    from frappe.utils import today
-    sessions = frappe.get_all("Car POS Session", filters={"status": "Open"},
-        fields=["name", "session_date", "opened_by", "opening_cash", "opening_time"], limit=1)
-    return sessions[0] if sessions else None
+    try:
+        sessions = frappe.get_all("Car POS Session", filters={"status": "Open"},
+            fields=["name", "session_date", "opened_by", "opening_cash", "opening_time"], limit=1)
+        return sessions[0] if sessions else None
+    except Exception as e:
+        frappe.log_error(str(e), "POS Session Error")
+        return None
 
 @frappe.whitelist(allow_guest=True)
 def close_pos_session(session_name, closing_cash=0, notes=None):
@@ -182,7 +204,7 @@ def close_pos_session(session_name, closing_cash=0, notes=None):
     card_sales = sum(i.grand_total or 0 for i in invoices if i.payment_method == "Card")
     total_sales = cash_sales + upi_sales + card_sales
     doc.status = "Closed"
-    doc.closing_time = str(now_datetime().time())
+    doc.closing_time = now_datetime().strftime("%H:%M:%S")
     doc.closing_cash = float(closing_cash or 0)
     doc.total_cash_sales = cash_sales
     doc.total_upi_sales = upi_sales
