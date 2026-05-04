@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoCare Pro - Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#f4faf8;--card:#ffffff;--card2:#f0faf8;--teal:#00b894;--teal2:#00cec9;--text:#2d3436;--muted:#636e72;--border:#d5ede8;--sidebar:220px;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;display:flex;min-height:100vh;}
+.sidebar{width:var(--sidebar);background:#fff;border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:200;padding:0 0 24px;box-shadow:2px 0 8px rgba(0,184,148,.06);}
+.sidebar-logo{padding:20px 16px;border-bottom:1px solid var(--border);font-size:1.1rem;font-weight:700;color:var(--teal);}
+.sidebar-menu{list-style:none;padding:8px 0;}
+.sidebar-menu li{cursor:pointer;padding:10px 20px;display:flex;align-items:center;gap:10px;color:var(--muted);transition:.2s;font-size:.92rem;}
+.sidebar-menu li:hover,.sidebar-menu li.active{background:rgba(0,184,148,.08);color:var(--teal);border-right:3px solid var(--teal);font-weight:600;}
+.sidebar-menu li span{font-size:1.1rem;}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,184,148,.06);}
+.topbar-title{font-size:1.2rem;font-weight:700;color:var(--text);}
+.topbar-actions{display:flex;gap:12px;align-items:center;}
+.btn{background:var(--teal);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;transition:.2s;font-size:.9rem;}
+.btn:hover{background:var(--teal2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,184,148,.35);}
+.btn-sm{padding:6px 14px;font-size:.82rem;}
+.btn-outline{background:transparent;border:1px solid var(--teal);color:var(--teal);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;transition:.2s;}
+.btn-outline:hover{background:var(--teal);color:#fff;}
+.content{padding:28px;flex:1;}
+.section{display:none;}
+.section.active{display:block;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 2px 8px rgba(0,184,148,.06);}
+.stat-label{color:var(--muted);font-size:.82rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+.stat-value{font-size:2rem;font-weight:800;color:var(--teal);}
+.stat-sub{color:var(--muted);font-size:.78rem;margin-top:4px;}
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.tab{padding:7px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;transition:.2s;}
+.tab.active,.tab:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.filter-input{background:#fff;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:.85rem;}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,184,148,.06);}
+th{background:rgba(0,184,148,.06);color:var(--muted);padding:12px 16px;text-align:left;font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+td{padding:12px 16px;border-top:1px solid var(--border);font-size:.88rem;color:var(--text);}
+tr:hover td{background:rgba(0,184,148,.03);}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;}
+.badge-received{background:rgba(59,130,246,.12);color:#2563eb;}
+.badge-inprogress{background:rgba(234,179,8,.12);color:#b45309;}
+.badge-waiting{background:rgba(249,115,22,.12);color:#c2410c;}
+.badge-ready{background:rgba(0,184,148,.15);color:#00875a;}
+.badge-delivered{background:rgba(20,184,166,.12);color:#0d9488;}
+.badge-cancelled{background:rgba(239,68,68,.12);color:#dc2626;}
+.badge-paid{background:rgba(0,184,148,.15);color:#00875a;}
+.badge-unpaid{background:rgba(239,68,68,.12);color:#dc2626;}
+.badge-low{background:rgba(239,68,68,.12);color:#dc2626;}
+select.status-sel{background:#fff;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:.8rem;cursor:pointer;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(45,52,54,.5);z-index:500;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border:1px solid var(--border);border-radius:20px;padding:32px;max-width:650px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,184,148,.15);}
+.modal h2{font-size:1.3rem;margin-bottom:20px;color:var(--teal);}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;color:var(--muted);margin-bottom:4px;font-size:.85rem;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:#f8fffe;border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:.9rem;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,184,148,.1);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.pos-wrap{display:grid;grid-template-columns:1fr 340px;gap:20px;height:calc(100vh - 180px);}
+.pos-services{overflow-y:auto;padding-right:4px;}
+.pos-cart{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 2px 8px rgba(0,184,148,.06);}
+.pos-service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:12px;}
+.pos-svc-btn{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:.2s;text-align:center;box-shadow:0 1px 4px rgba(0,184,148,.06);}
+.pos-svc-btn:hover{border-color:var(--teal);box-shadow:0 4px 12px rgba(0,184,148,.15);}
+.pos-svc-name{font-size:.85rem;font-weight:600;color:var(--text);}
+.pos-svc-price{color:var(--teal);font-size:.9rem;font-weight:700;}
+.cart-items{flex:1;overflow-y:auto;margin:12px 0;}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.cart-total{border-top:2px solid var(--teal);padding-top:12px;margin-top:8px;}
+.pos-step{display:none;}
+.pos-step.active{display:block;}
+.step-indicator{display:flex;gap:8px;margin-bottom:20px;}
+.step-dot{width:32px;height:32px;border-radius:50%;background:#f0faf8;display:flex;align-items:center;justify-content:center;font-size:.85rem;border:2px solid var(--border);}
+.step-dot.active{background:var(--teal);color:#fff;border-color:var(--teal);font-weight:700;}
+.step-dot.done{background:rgba(0,184,148,.15);border-color:var(--teal);color:var(--teal);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
+.cal-day-label{text-align:center;color:var(--muted);font-size:.75rem;padding:4px;font-weight:600;}
+.cal-cell{background:#fff;border:1px solid var(--border);border-radius:8px;min-height:80px;padding:4px;font-size:.72rem;cursor:pointer;transition:.2s;}
+.cal-cell:hover{background:var(--card2);border-color:var(--teal);}
+.cal-cell.today{border:2px solid var(--teal);background:#f0faf8;}
+.cal-cell-date{color:var(--muted);font-size:.7rem;margin-bottom:2px;}
+.cal-event{border-radius:3px;padding:2px 4px;margin-bottom:2px;font-size:.68rem;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-session-bar{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,184,148,.06);}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--teal);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;z-index:9999;display:none;font-size:.9rem;box-shadow:0 4px 16px rgba(0,184,148,.4);}
+.wa-popup{position:fixed;inset:0;background:rgba(45,52,54,.6);z-index:800;display:none;align-items:center;justify-content:center;}
+.wa-popup.open{display:flex;}
+.wa-box{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px;max-width:460px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,184,148,.15);}
+.wa-msg{background:var(--card2);border-radius:10px;padding:16px;margin:16px 0;font-size:.85rem;text-align:left;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto;color:var(--text);}
+.receipt-area{background:#fff;color:#000;border-radius:10px;padding:24px;max-width:360px;margin:0 auto;font-family:monospace;border:1px solid var(--border);}
+.receipt-area h3{text-align:center;font-size:1.1rem;margin-bottom:4px;}
+.receipt-line{display:flex;justify-content:space-between;font-size:.85rem;padding:2px 0;}
+.receipt-divider{border-top:1px dashed #ccc;margin:6px 0;}
+.low-stock-badge{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;border-radius:6px;padding:2px 8px;font-size:.75rem;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+.act-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:.2s;}
+.act-view{background:#f0faf8;color:var(--teal);border-color:#b2dfdb;}
+.act-view:hover{background:var(--teal);color:#fff;}
+.act-edit{background:#fff8f0;color:#f59e0b;border-color:#fcd34d;}
+.act-edit:hover{background:#f59e0b;color:#fff;}
+.act-del{background:#fff0f0;color:#dc2626;border-color:#fca5a5;}
+.act-del:hover{background:#dc2626;color:#fff;}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo">🚗 AutoCare Pro</div>
+  <ul class="sidebar-menu" id="sideMenu">
+    <li class="active" onclick="showSection('dashboard')"><span>📊</span> Dashboard</li>
+    <li onclick="showSection('appointments')"><span>📅</span> Appointments</li>
+    <li onclick="showSection('jobcards')"><span>🔧</span> Job Cards</li>
+    <li onclick="showSection('calendar')"><span>🗓️</span> Calendar</li>
+    <li onclick="showSection('customers')"><span>👤</span> Customers</li>
+    <li onclick="showSection('vehicles')"><span>🚗</span> Vehicles</li>
+    <li onclick="showSection('mechanics')"><span>👨‍🔧</span> Mechanics</li>
+    <li onclick="showSection('services')"><span>⚙️</span> Services</li>
+    <li onclick="showSection('spareparts')"><span>🔩</span> Spare Parts</li>
+    <li onclick="showSection('invoices')"><span>🧾</span> Invoices</li>
+    <li onclick="showSection('records')"><span>📋</span> Service Records</li>
+    <li onclick="showSection('pos')"><span>💰</span> POS</li>
+  </ul>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" onclick="openModal('newJobCard')">+ New Job Card</button>
+      <button class="btn-outline" onclick="openModal('newAppointment')">+ Appointment</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="stats-grid" id="dashStats">
+        <div class="stat-card"><div class="stat-label">Today's Jobs</div><div class="stat-value" id="statTodayJobs">-</div></div>
+        <div class="stat-card"><div class="stat-label">Month Revenue</div><div class="stat-value" id="statRevenue">-</div></div>
+        <div class="stat-card"><div class="stat-label">Total Vehicles</div><div class="stat-value" id="statVehicles">-</div></div>
+        <div class="stat-card"><div class="stat-label">Completed Today</div><div class="stat-value" id="statCompleted">-</div></div>
+        <div class="stat-card"><div class="stat-label">Pending Jobs</div><div class="stat-value" id="statPending">-</div></div>
+        <div class="stat-card"><div class="stat-label">Low Stock Items</div><div class="stat-value" id="statLowStock">-</div></div>
+      </div>
+      <h3 style="margin-bottom:12px;color:var(--muted);">Recent Job Cards</h3>
+      <div id="dashJobTable"></div>
+    </div>
+
+    <!-- APPOINTMENTS -->
+    <div class="section" id="sec-appointments">
+      <div class="section-header" style="margin-bottom:12px;">
+        <div>
+          <div class="filter-tabs" id="aptTabs" style="margin-bottom:8px;">
+            <div class="tab active" onclick="filterApt('All',this)">All</div>
+            <div class="tab" onclick="filterApt('Booked',this)">Booked</div>
+            <div class="tab" onclick="filterApt('Confirmed',this)">Confirmed</div>
+            <div class="tab" onclick="filterApt('Completed',this)">Completed</div>
+            <div class="tab" onclick="filterApt('Cancelled',this)">Cancelled</div>
+          </div>
+          <div class="filters" style="margin-bottom:0">
+            <input type="date" class="filter-input" id="aptDateFilter" onchange="loadAppointments()">
+            <input type="text" class="filter-input" id="aptServiceFilter" placeholder="Service type..." oninput="loadAppointments()">
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="openModal('newAppointment')">+ Appointment</button>
+      </div>
+      <div id="aptTable"></div>
+    </div>
+
+    <!-- JOB CARDS -->
+    <div class="section" id="sec-jobcards">
+      <div class="section-header" style="margin-bottom:12px;">
+        <div>
+          <div class="filter-tabs" id="jobTabs" style="margin-bottom:8px;">
+            <div class="tab active" onclick="filterJobs('All',this)">All</div>
+            <div class="tab" onclick="filterJobs('Received',this)">Received</div>
+            <div class="tab" onclick="filterJobs('In Progress',this)">In Progress</div>
+            <div class="tab" onclick="filterJobs('Waiting for Parts',this)">Waiting</div>
+            <div class="tab" onclick="filterJobs('Ready',this)">Ready</div>
+            <div class="tab" onclick="filterJobs('Delivered',this)">Delivered</div>
+            <div class="tab" onclick="filterJobs('Cancelled',this)">Cancelled</div>
+          </div>
+          <div class="filters" style="margin-bottom:0">
+            <input type="date" class="filter-input" id="jobDateFrom" onchange="loadJobCards()">
+            <input type="date" class="filter-input" id="jobDateTo" onchange="loadJobCards()">
+            <input type="text" class="filter-input" id="jobMechFilter" placeholder="Mechanic..." oninput="loadJobCards()">
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="openModal('newJobCard')">+ New Job Card</button>
+      </div>
+      <div id="jobTable"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="section" id="sec-calendar">
+      <div class="filters" style="justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:8px;">
+          <button class="tab active" id="calViewWeek" onclick="calView='week';renderCal()">Week</button>
+          <button class="tab" id="calViewMonth" onclick="calView='month';renderCal()">Month</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-outline" onclick="calOffset--;renderCal()">◀</button>
+          <span id="calTitle" style="min-width:160px;text-align:center;font-weight:600;"></span>
+          <button class="btn-outline" onclick="calOffset++;renderCal()">▶</button>
+          <button class="btn btn-sm" onclick="calOffset=0;renderCal()">Today</button>
+        </div>
+        <input type="text" class="filter-input" id="calMechFilter" placeholder="Filter mechanic..." oninput="renderCal()">
+      </div>
+      <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;font-size:.78rem;">
+        <span style="color:#60a5fa">■ Received</span><span style="color:#fbbf24">■ In Progress</span><span style="color:#fb923c">■ Waiting</span>
+        <span style="color:#4ade80">■ Ready</span><span style="color:#2dd4bf">■ Delivered</span><span style="color:#f87171">■ Cancelled</span>
+      </div>
+      <div class="cal-header"><div class="cal-day-label">Sun</div><div class="cal-day-label">Mon</div><div class="cal-day-label">Tue</div><div class="cal-day-label">Wed</div><div class="cal-day-label">Thu</div><div class="cal-day-label">Fri</div><div class="cal-day-label">Sat</div></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="section" id="sec-customers">
+      <div class="section-header">
+        <div class="filters" style="flex:1"><input type="text" class="filter-input" id="custSearch" placeholder="🔍 Search customer name..." oninput="loadCustomers()" style="min-width:260px"></div>
+        <button class="btn btn-sm" onclick="openAddModal('customer')">+ Add Customer</button>
+      </div>
+      <div id="custTable"></div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div class="section" id="sec-vehicles">
+      <div class="section-header">
+        <div class="filters" style="flex:1"><input type="text" class="filter-input" id="vehSearch" placeholder="🔍 Search vehicle number..." oninput="loadVehicles()" style="min-width:260px"></div>
+        <button class="btn btn-sm" onclick="openAddModal('vehicle')">+ Add Vehicle</button>
+      </div>
+      <div id="vehTable"></div>
+    </div>
+
+    <!-- MECHANICS -->
+    <div class="section" id="sec-mechanics">
+      <div class="section-header">
+        <h3 style="font-size:1rem;font-weight:600;">Mechanics</h3>
+        <button class="btn btn-sm" onclick="openAddModal('mechanic')">+ Add Mechanic</button>
+      </div>
+      <div id="mechTable"></div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="section" id="sec-services">
+      <div class="section-header">
+        <h3 style="font-size:1rem;font-weight:600;">Services &amp; Pricing</h3>
+        <button class="btn btn-sm" onclick="openAddModal('service')">+ Add Service</button>
+      </div>
+      <div id="svcTable"></div>
+    </div>
+
+    <!-- SPARE PARTS -->
+    <div class="section" id="sec-spareparts">
+      <div class="section-header" style="margin-bottom:12px;">
+        <div class="filter-tabs" style="margin-bottom:0;flex:1">
+          <button class="tab active" id="partAllTab" onclick="filterParts('All',this)">All</button>
+          <button class="tab" onclick="filterParts('Engine',this)">Engine</button>
+          <button class="tab" onclick="filterParts('Brake',this)">Brake</button>
+          <button class="tab" onclick="filterParts('AC',this)">AC</button>
+          <button class="tab" onclick="filterParts('Electrical',this)">Electrical</button>
+          <button class="tab" id="lowStockTab" onclick="filterParts('lowstock',this)">⚠️ Low Stock</button>
+        </div>
+        <button class="btn btn-sm" onclick="openAddModal('part')">+ Add Part</button>
+      </div>
+      <div id="partTable"></div>
+    </div>
+
+    <!-- INVOICES -->
+    <div class="section" id="sec-invoices">
+      <div class="section-header" style="margin-bottom:12px;">
+        <div class="filters" style="flex:1;margin-bottom:0">
+          <input type="date" class="filter-input" id="invDateFrom" onchange="loadInvoices()">
+          <input type="date" class="filter-input" id="invDateTo" onchange="loadInvoices()">
+          <select class="filter-input" id="invPayFilter" onchange="loadInvoices()">
+            <option value="">All Payment</option><option>Paid</option><option>Unpaid</option><option>Partially Paid</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" onclick="openAddModal('invoice')">+ New Invoice</button>
+      </div>
+      <div id="invTable"></div>
+    </div>
+
+    <!-- SERVICE RECORDS -->
+    <div class="section" id="sec-records">
+      <div class="section-header">
+        <h3 style="font-size:1rem;font-weight:600;">Service Records</h3>
+        <button class="btn btn-sm" onclick="openAddModal('record')">+ Add Record</button>
+      </div>
+      <div id="recTable"></div>
+    </div>
+
+    <!-- POS -->
+    <div class="section" id="sec-pos">
+      <div class="pos-session-bar">
+        <div id="posSessionInfo" style="color:var(--muted);">No active POS session</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" id="posOpenBtn" onclick="openPosSession()">🔓 Open POS</button>
+          <button class="btn-outline" id="posCloseBtn" onclick="closePosSession()" style="display:none">🔒 Close POS</button>
+        </div>
+      </div>
+      <div class="step-indicator">
+        <div class="step-dot active" id="step1dot">1</div>
+        <div style="align-self:center;color:var(--muted);margin:0 4px;">→</div>
+        <div class="step-dot" id="step2dot">2</div>
+        <div style="align-self:center;color:var(--muted);margin:0 4px;">→</div>
+        <div class="step-dot" id="step3dot">3</div>
+      </div>
+      <div class="pos-step active" id="posStep1">
+        <div class="pos-wrap">
+          <div class="pos-services">
+            <div class="filter-tabs" id="posCatTabs">
+              <div class="tab active" onclick="posCat='All';loadPosServices()">All</div>
+              <div class="tab" onclick="posCat='Engine Repair';loadPosServices()">Engine</div>
+              <div class="tab" onclick="posCat='Brake Service';loadPosServices()">Brake</div>
+              <div class="tab" onclick="posCat='AC Service';loadPosServices()">AC</div>
+              <div class="tab" onclick="posCat='Electrical';loadPosServices()">Electrical</div>
+              <div class="tab" onclick="posCat='Body Work';loadPosServices()">Body</div>
+              <div class="tab" onclick="posCat='Tyre';loadPosServices()">Tyres</div>
+            </div>
+            <div class="pos-service-grid" id="posSvcGrid"></div>
+          </div>
+          <div class="pos-cart">
+            <h3 style="margin-bottom:8px;">🛒 Cart</h3>
+            <div class="form-group"><label>Customer Name *</label><input type="text" id="posCustomer" placeholder="Customer name"></div>
+            <div class="form-group"><label>Phone *</label><input type="text" id="posPhone" placeholder="Phone number"></div>
+            <div class="form-group"><label>Vehicle Number *</label><input type="text" id="posVehicle" placeholder="Vehicle number"></div>
+            <div class="form-group"><label>Vehicle Make</label><select id="posMake"><option>Toyota</option><option>Honda</option><option>Maruti</option><option>Hyundai</option><option>Tata</option><option>Ford</option><option>Other</option></select></div>
+            <div class="cart-items" id="cartItems"><div style="color:var(--muted);text-align:center;padding:20px;">No items in cart</div></div>
+            <div class="cart-total">
+              <div class="receipt-line"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
+              <div class="receipt-line"><span>GST (18%)</span><span id="cartGst">₹0</span></div>
+              <div class="receipt-line" style="font-weight:700;font-size:1rem;"><span>Total</span><span id="cartTotal" style="color:var(--teal);">₹0</span></div>
+            </div>
+            <button class="btn" style="width:100%;margin-top:12px;" onclick="goToPayment()">Proceed to Payment →</button>
+          </div>
+        </div>
+      </div>
+      <div class="pos-step" id="posStep2">
+        <h3 style="margin-bottom:16px;">💳 Payment</h3>
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <button class="tab" id="payCash" onclick="selectPayMethod('Cash')">💵 Cash</button>
+          <button class="tab" id="payUPI" onclick="selectPayMethod('UPI')">📲 UPI</button>
+          <button class="tab" id="payCard" onclick="selectPayMethod('Card')">💳 Card</button>
+        </div>
+        <div id="payMethodArea"></div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+          <button class="btn-outline" onclick="goToStep(1)">← Back</button>
+          <button class="btn" onclick="confirmPayment()">Confirm Payment ✓</button>
+        </div>
+      </div>
+      <div class="pos-step" id="posStep3">
+        <h3 style="margin-bottom:16px;">🎉 Payment Confirmed!</h3>
+        <div class="receipt-area" id="receiptArea"></div>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+          <button class="btn" onclick="window.print()">🖨️ Print Receipt</button>
+          <button class="btn-outline" onclick="newPosTransaction()">New Transaction</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox">
+    <h2 id="modalTitle">New Job Card</h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="wa-popup" id="waPopup">
+  <div class="wa-box">
+    <h3 style="margin-bottom:8px;">📱 Send WhatsApp Update</h3>
+    <p style="color:var(--muted);font-size:.85rem;">Status changed to: <b id="waStatus" style="color:var(--teal);"></b></p>
+    <div class="wa-msg" id="waMsg"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="btn" onclick="sendWhatsApp()">📲 Send WhatsApp</button>
+      <button class="btn-outline" onclick="document.getElementById('waPopup').classList.remove('open')">Skip</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.addEventListener('DOMContentLoaded',function(){if(window.frappe){if(frappe.msgprint)frappe.msgprint=function(){};if(frappe.throw)frappe.throw=function(){};}});
+window.addEventListener('unhandledrejection',function(e){e.preventDefault();});
+
+function getCsrf(){const v=document.cookie.match('(^|;)\\s*csrf_token\\s*=\\s*([^;]+)');return v?v.pop():'';}
+async function post(method,params){
+  const fd=new URLSearchParams();
+  Object.entries(params||{}).forEach(([k,v])=>fd.append(k,typeof v==='object'?JSON.stringify(v):String(v)));
+  const r=await fetch('/api/method/'+method,{method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/x-www-form-urlencoded','X-Frappe-CSRF-Token':getCsrf()},body:fd});
+  const d=await r.json();return d.message;
+}
+async function getList(doctype,fields,filters,limit,orderBy){
+  return post('frappe.client.get_list',{doctype,fields:JSON.stringify(fields),filters:JSON.stringify(filters||[]),limit_page_length:limit||50,order_by:orderBy||'creation desc'});
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+
+let currentSection='dashboard';
+function showSection(s){
+  document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('active');
+  document.querySelectorAll('.sidebar-menu li').forEach((li,i)=>{
+    li.classList.remove('active');
+    const sections=['dashboard','appointments','jobcards','calendar','customers','vehicles','mechanics','services','spareparts','invoices','records','pos'];
+    if(sections[i]===s)li.classList.add('active');
+  });
+  currentSection=s;
+  const titles={dashboard:'Dashboard',appointments:'Appointments',jobcards:'Job Cards',calendar:'Calendar',customers:'Customers',vehicles:'Vehicles',mechanics:'Mechanics',services:'Services',spareparts:'Spare Parts',invoices:'Invoices',records:'Service Records',pos:'POS'};
+  document.getElementById('topbarTitle').textContent=titles[s]||s;
+  const loaders={dashboard:loadDashboard,appointments:loadAppointments,jobcards:loadJobCards,calendar:()=>renderCal(),customers:loadCustomers,vehicles:loadVehicles,mechanics:loadMechanics,services:loadServices,spareparts:loadParts,invoices:loadInvoices,records:loadRecords,pos:loadPos};
+  if(loaders[s])loaders[s]();
+}
+
+// DASHBOARD
+async function loadDashboard(){
+  try{
+    const stats=await post('car_app.api.get_dashboard_stats',{});
+    if(stats){
+      document.getElementById('statTodayJobs').textContent=stats.today_jobs||0;
+      document.getElementById('statRevenue').textContent='₹'+(stats.month_revenue||0).toLocaleString('en-IN');
+      document.getElementById('statVehicles').textContent=stats.total_vehicles||0;
+      document.getElementById('statCompleted').textContent=stats.completed_today||0;
+      document.getElementById('statPending').textContent=stats.pending_jobs||0;
+      document.getElementById('statLowStock').textContent=stats.low_stock_count||0;
+    }
+    const jobs=await getList('Car Job Card',['name','customer_name','vehicle_number','status','mechanic','grand_total','job_date'],[],10);
+    renderJobTable('dashJobTable',jobs);
+  }catch(e){console.log(e);}
+}
+
+function statusBadge(s){
+  const map={'Received':'received','In Progress':'inprogress','Waiting for Parts':'waiting','Ready':'ready','Delivered':'delivered','Cancelled':'cancelled','Paid':'paid','Unpaid':'unpaid','Partially Paid':'waiting','Booked':'received','Confirmed':'inprogress','Completed':'delivered'};
+  return `<span class="badge badge-${map[s]||'received'}">${s}</span>`;
+}
+
+function renderJobTable(containerId,jobs){
+  const c=document.getElementById(containerId);
+  if(!jobs||!jobs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No records found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Job ID</th><th>Customer</th><th>Vehicle</th><th>Status</th><th>Mechanic</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+  ${jobs.map(j=>`<tr>
+    <td><b>${j.name}</b></td>
+    <td>${j.customer_name||''}</td>
+    <td>${j.vehicle_number||''}</td>
+    <td><select class="status-sel" onchange="changeJobStatus('${j.name}',this.value,this)">
+      ${['Received','In Progress','Waiting for Parts','Ready','Delivered','Cancelled'].map(s=>`<option ${s===j.status?'selected':''}>${s}</option>`).join('')}
+    </select></td>
+    <td>${j.mechanic||'-'}</td>
+    <td>₹${(j.grand_total||0).toLocaleString('en-IN')}</td>
+    <td>${j.job_date||''}</td>
+    <td><button class="btn btn-sm" onclick="viewJob('${j.name}')">View</button> <button class="btn-outline" style="padding:5px 10px;font-size:.78rem;" onclick="editJob('${j.name}')">Edit</button></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+let currentJobName='', currentWaUrl='';
+async function changeJobStatus(jobName,newStatus,sel){
+  try{
+    const res=await post('car_app.api.update_job_status',{job_name:jobName,new_status:newStatus});
+    showToast('Status updated to '+newStatus);
+    if(res&&res.whatsapp_url){
+      currentWaUrl=res.whatsapp_url;
+      currentJobName=jobName;
+      document.getElementById('waStatus').textContent=newStatus;
+      const url=new URL(res.whatsapp_url);
+      document.getElementById('waMsg').textContent=decodeURIComponent(url.searchParams.get('text')||'');
+      document.getElementById('waPopup').classList.add('open');
+    }
+  }catch(e){showToast('Error updating status');}
+}
+function sendWhatsApp(){window.open(currentWaUrl,'_blank');document.getElementById('waPopup').classList.remove('open');}
+
+// JOB CARDS
+let jobStatusFilter='All';
+function filterJobs(s,el){
+  jobStatusFilter=s;
+  document.querySelectorAll('#jobTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadJobCards();
+}
+async function loadJobCards(){
+  const filters=[];
+  if(jobStatusFilter!=='All')filters.push(['status','=',jobStatusFilter]);
+  const mech=document.getElementById('jobMechFilter')?.value?.trim();
+  if(mech)filters.push(['mechanic','like','%'+mech+'%']);
+  const jobs=await getList('Car Job Card',['name','customer_name','customer_phone','vehicle_number','vehicle_make','status','mechanic','grand_total','job_date','services'],filters,100);
+  renderJobTable('jobTable',jobs);
+}
+
+// APPOINTMENTS
+let aptStatusFilter='All';
+function filterApt(s,el){
+  aptStatusFilter=s;
+  document.querySelectorAll('#aptTabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadAppointments();
+}
+async function loadAppointments(){
+  const filters=[];
+  if(aptStatusFilter!=='All')filters.push(['status','=',aptStatusFilter]);
+  const d=document.getElementById('aptDateFilter')?.value;
+  if(d)filters.push(['appointment_date','=',d]);
+  const sv=document.getElementById('aptServiceFilter')?.value?.trim();
+  if(sv)filters.push(['service_type','like','%'+sv+'%']);
+  const apts=await getList('Car Appointment',['name','customer_name','customer_phone','vehicle_number','service_type','mechanic','appointment_date','appointment_time','status'],filters,100);
+  const c=document.getElementById('aptTable');
+  if(!apts||!apts.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No appointments found</div>';return;}
+  c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><span style="font-weight:600;color:var(--muted);font-size:.85rem;">All Appointments (${apts.length})</span></div>
+  <table><thead><tr><th>Customer</th><th>Vehicle</th><th>Service</th><th>Mechanic</th><th>Date</th><th>Time</th><th>Status</th><th>Change Status</th><th>Actions</th></tr></thead><tbody>
+  ${apts.map(a=>`<tr>
+    <td><b>${a.customer_name||''}</b><div style="font-size:.75rem;color:var(--muted)">${a.customer_phone||''}</div></td>
+    <td>${a.vehicle_number||'-'}</td>
+    <td>${a.service_type||'-'}</td>
+    <td>${a.mechanic||'—'}</td>
+    <td>${a.appointment_date||''}</td>
+    <td>${(a.appointment_time||'').slice(0,5)}</td>
+    <td>${statusBadge(a.status)}</td>
+    <td><select class="status-sel" onchange="changeAptStatus('${a.name}',this.value)">
+      ${['Booked','Confirmed','In Progress','Completed','Cancelled'].map(s=>`<option ${s===a.status?'selected':''}>${s}</option>`).join('')}
+    </select></td>
+    <td style="white-space:nowrap">
+      <button class="act-btn act-view" onclick="viewApt('${a.name}')">👁 View</button>
+      <button class="act-btn act-edit" onclick="editApt('${a.name}')">✏ Edit</button>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function changeAptStatus(name, newStatus){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Appointment',name,fieldname:'status',value:newStatus});
+    showToast('Appointment status updated to '+newStatus);
+  }catch(e){showToast('Error updating status');}
+}
+
+async function viewApt(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Appointment',name});
+    document.getElementById('modalTitle').textContent='Appointment: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Customer</label><div style="font-weight:600">${doc.customer_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Phone</label><div>${doc.customer_phone||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Vehicle</label><div>${doc.vehicle_number||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Make</label><div>${doc.vehicle_make||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Service</label><div>${doc.service_type||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Mechanic</label><div>${doc.mechanic||'—'}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Date</label><div>${doc.appointment_date||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Time</label><div>${doc.appointment_time||''}</div></div></div>
+      <div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Status</label><div>${statusBadge(doc.status)}</div></div>
+      ${doc.notes?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Notes</label><div>${doc.notes}</div></div>`:''}
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading appointment');}
+}
+
+async function editApt(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Appointment',name});
+    document.getElementById('modalTitle').textContent='Edit Appointment: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Customer Name</label><input id="ea_cust" value="${doc.customer_name||''}"></div><div class="form-group"><label>Phone</label><input id="ea_phone" value="${doc.customer_phone||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle Number</label><input id="ea_veh" value="${doc.vehicle_number||''}"></div><div class="form-group"><label>Service Type</label><input id="ea_svc" value="${doc.service_type||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Mechanic</label><input id="ea_mech" value="${doc.mechanic||''}"></div><div class="form-group"><label>Status</label><select id="ea_status">${['Booked','Confirmed','In Progress','Completed','Cancelled'].map(s=>`<option ${s===doc.status?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Date</label><input type="date" id="ea_date" value="${doc.appointment_date||''}"></div><div class="form-group"><label>Time</label><input type="time" id="ea_time" value="${(doc.appointment_time||'10:00').slice(0,5)}"></div></div>
+      <div class="form-group"><label>Notes</label><textarea id="ea_notes" rows="2">${doc.notes||''}</textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveApt('${name}')">Save Changes</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading appointment');}
+}
+
+async function saveApt(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Appointment',name,fieldname:JSON.stringify({
+      customer_name:document.getElementById('ea_cust')?.value||'',
+      customer_phone:document.getElementById('ea_phone')?.value||'',
+      vehicle_number:document.getElementById('ea_veh')?.value||'',
+      service_type:document.getElementById('ea_svc')?.value||'',
+      mechanic:document.getElementById('ea_mech')?.value||'',
+      status:document.getElementById('ea_status')?.value||'',
+      appointment_date:document.getElementById('ea_date')?.value||'',
+      appointment_time:document.getElementById('ea_time')?.value||'',
+      notes:document.getElementById('ea_notes')?.value||''
+    })});
+    showToast('Appointment saved!');closeModal();loadAppointments();
+  }catch(e){showToast('Error saving appointment');}
+}
+
+async function loadCustomers(){
+  const search=document.getElementById('custSearch')?.value?.trim();
+  const filters=search?[['full_name','like','%'+search+'%']]:[];
+  const custs=await getList('Car Customer',['name','full_name','phone','email','gender','total_vehicles','total_visits','loyalty_points'],filters,100);
+  const c=document.getElementById('custTable');
+  if(!custs||!custs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No customers found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Gender</th><th>Vehicles</th><th>Visits</th><th>Points</th><th>Actions</th></tr></thead><tbody>
+  ${custs.map(cu=>`<tr>
+    <td><b>${cu.full_name||cu.name}</b></td>
+    <td>${cu.phone||'-'}</td>
+    <td>${cu.email||'—'}</td>
+    <td>${cu.gender||'—'}</td>
+    <td>${cu.total_vehicles||0}</td>
+    <td>${cu.total_visits||0}</td>
+    <td>⭐${cu.loyalty_points||0}</td>
+    <td style="white-space:nowrap">
+      <button class="act-btn act-view" onclick="viewCust('${cu.name}')">👁 View</button>
+      <button class="act-btn act-edit" onclick="editCust('${cu.name}')">✏ Edit</button>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function viewCust(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Customer',name});
+    document.getElementById('modalTitle').textContent='Customer: '+doc.full_name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Name</label><div style="font-weight:600">${doc.full_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Phone</label><div>${doc.phone||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Email</label><div>${doc.email||'—'}</div></div><div><label style="color:var(--muted);font-size:.8rem">Gender</label><div>${doc.gender||'—'}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Total Vehicles</label><div>${doc.total_vehicles||0}</div></div><div><label style="color:var(--muted);font-size:.8rem">Total Visits</label><div>${doc.total_visits||0}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Loyalty Points</label><div>⭐${doc.loyalty_points||0}</div></div></div>
+      ${doc.address?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Address</label><div>${doc.address}</div></div>`:''}
+      ${doc.notes?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Notes</label><div>${doc.notes}</div></div>`:''}
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading customer');}
+}
+
+async function editCust(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Customer',name});
+    document.getElementById('modalTitle').textContent='Edit Customer';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Full Name *</label><input id="ec_name" value="${doc.full_name||''}"></div><div class="form-group"><label>Phone</label><input id="ec_phone" value="${doc.phone||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Email</label><input id="ec_email" value="${doc.email||''}"></div><div class="form-group"><label>Gender</label><select id="ec_gender"><option value="">—</option>${['Male','Female','Other'].map(g=>`<option ${g===doc.gender?'selected':''}>${g}</option>`).join('')}</select></div></div>
+      <div class="form-group"><label>Address</label><textarea id="ec_addr" rows="2">${doc.address||''}</textarea></div>
+      <div class="form-group"><label>Notes</label><textarea id="ec_notes" rows="2">${doc.notes||''}</textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveCust('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading customer');}
+}
+async function saveCust(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Customer',name,fieldname:JSON.stringify({
+      full_name:document.getElementById('ec_name')?.value||'',phone:document.getElementById('ec_phone')?.value||'',
+      email:document.getElementById('ec_email')?.value||'',gender:document.getElementById('ec_gender')?.value||'',
+      address:document.getElementById('ec_addr')?.value||'',notes:document.getElementById('ec_notes')?.value||''
+    })});
+    showToast('Customer saved!');closeModal();loadCustomers();
+  }catch(e){showToast('Error saving customer');}
+}
+
+// VEHICLES
+async function loadVehicles(){
+  const search=document.getElementById('vehSearch')?.value?.trim();
+  const filters=search?[['vehicle_number','like','%'+search+'%']]:[];
+  const vehs=await getList('Car Vehicle',['name','owner_name','owner_phone','vehicle_number','make','model','year','fuel_type','insurance_expiry','next_service_date'],filters,100);
+  const c=document.getElementById('vehTable');
+  if(!vehs||!vehs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No vehicles found</div>';return;}
+  const today=new Date();
+  c.innerHTML=`<table><thead><tr><th>Vehicle No.</th><th>Owner</th><th>Phone</th><th>Make / Model</th><th>Year</th><th>Fuel</th><th>Insurance Expiry</th><th>Next Service</th><th>Actions</th></tr></thead><tbody>
+  ${vehs.map(v=>{
+    let insColor='var(--text)',insBg='';
+    if(v.insurance_expiry){const dd=new Date(v.insurance_expiry);const diff=(dd-today)/(1000*60*60*24);if(diff<0){insColor='#dc2626';insBg='rgba(220,38,38,.07)';}else if(diff<30){insColor='#d97706';insBg='rgba(217,119,6,.07)';}}
+    return `<tr>
+      <td><b>${v.vehicle_number||''}</b></td>
+      <td>${v.owner_name||''}</td>
+      <td>${v.owner_phone||'-'}</td>
+      <td>${v.make||''} ${v.model||''}</td>
+      <td>${v.year||''}</td>
+      <td>${v.fuel_type||''}</td>
+      <td style="color:${insColor};background:${insBg};border-radius:4px;padding:2px 6px;">${v.insurance_expiry||'-'}</td>
+      <td>${v.next_service_date||'-'}</td>
+      <td style="white-space:nowrap">
+        <button class="act-btn act-view" onclick="viewVehicle('${v.name}')">👁 View</button>
+        <button class="act-btn act-edit" onclick="editVehicle('${v.name}')">✏ Edit</button>
+      </td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+async function viewVehicle(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Vehicle',name});
+    document.getElementById('modalTitle').textContent='Vehicle: '+doc.vehicle_number;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Vehicle Number</label><div style="font-weight:700;font-size:1.1rem">${doc.vehicle_number||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Fuel Type</label><div>${doc.fuel_type||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Owner</label><div style="font-weight:600">${doc.owner_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Owner Phone</label><div>${doc.owner_phone||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Make</label><div>${doc.make||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Model</label><div>${doc.model||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Year</label><div>${doc.year||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Color</label><div>${doc.color||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Insurance Expiry</label><div style="color:#dc2626">${doc.insurance_expiry||'—'}</div></div><div><label style="color:var(--muted);font-size:.8rem">Next Service</label><div style="color:var(--teal)">${doc.next_service_date||'—'}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Odometer</label><div>${doc.odometer_reading||0} km</div></div><div><label style="color:var(--muted);font-size:.8rem">Last Service</label><div>${doc.last_service_date||'—'}</div></div></div>
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading vehicle');}
+}
+
+async function editVehicle(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Vehicle',name});
+    document.getElementById('modalTitle').textContent='Edit Vehicle';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Owner Name</label><input id="ev_own" value="${doc.owner_name||''}"></div><div class="form-group"><label>Owner Phone</label><input id="ev_phone" value="${doc.owner_phone||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle Number</label><input id="ev_veh" value="${doc.vehicle_number||''}"></div><div class="form-group"><label>Fuel Type</label><select id="ev_fuel">${['','Petrol','Diesel','Electric','CNG','Hybrid'].map(f=>`<option ${f===doc.fuel_type?'selected':''}>${f}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Make</label><input id="ev_make" value="${doc.make||''}"></div><div class="form-group"><label>Model</label><input id="ev_model" value="${doc.model||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Year</label><input type="number" id="ev_year" value="${doc.year||''}"></div><div class="form-group"><label>Color</label><input id="ev_color" value="${doc.color||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Insurance Expiry</label><input type="date" id="ev_ins" value="${doc.insurance_expiry||''}"></div><div class="form-group"><label>Next Service Date</label><input type="date" id="ev_nxt" value="${doc.next_service_date||''}"></div></div>
+      <div class="form-group"><label>Odometer Reading (km)</label><input type="number" id="ev_odo" value="${doc.odometer_reading||0}"></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveVehicle('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading vehicle');}
+}
+async function saveVehicle(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Vehicle',name,fieldname:JSON.stringify({
+      owner_name:document.getElementById('ev_own')?.value||'',owner_phone:document.getElementById('ev_phone')?.value||'',
+      vehicle_number:document.getElementById('ev_veh')?.value||'',fuel_type:document.getElementById('ev_fuel')?.value||'',
+      make:document.getElementById('ev_make')?.value||'',model:document.getElementById('ev_model')?.value||'',
+      year:document.getElementById('ev_year')?.value||'',color:document.getElementById('ev_color')?.value||'',
+      insurance_expiry:document.getElementById('ev_ins')?.value||'',next_service_date:document.getElementById('ev_nxt')?.value||'',
+      odometer_reading:document.getElementById('ev_odo')?.value||0
+    })});
+    showToast('Vehicle saved!');closeModal();loadVehicles();
+  }catch(e){showToast('Error saving vehicle');}
+}
+
+// MECHANICS
+async function loadMechanics(){
+  const mechs=await getList('Car Mechanic',['name','mechanic_name','phone','specialization','experience_years','shift','total_jobs','is_active'],[],100);
+  const c=document.getElementById('mechTable');
+  if(!mechs||!mechs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No mechanics found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Name</th><th>Phone</th><th>Specialization</th><th>Experience</th><th>Shift</th><th>Total Jobs</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${mechs.map(m=>`<tr>
+    <td><b>${m.mechanic_name}</b></td><td>${m.phone||''}</td><td>${m.specialization||''}</td>
+    <td>${m.experience_years||0} yrs</td><td>${m.shift||''}</td><td>${m.total_jobs||0}</td>
+    <td><span class="badge ${m.is_active?'badge-ready':'badge-cancelled'}">${m.is_active?'Active':'Inactive'}</span></td>
+    <td style="white-space:nowrap">
+      <button class="act-btn act-view" onclick="viewMech('${m.name}')">👁 View</button>
+      <button class="act-btn act-edit" onclick="editMech('${m.name}')">✏ Edit</button>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function viewMech(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Mechanic',name});
+    document.getElementById('modalTitle').textContent='Mechanic: '+doc.mechanic_name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Name</label><div style="font-weight:700">${doc.mechanic_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Phone</label><div>${doc.phone||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Specialization</label><div>${doc.specialization||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Experience</label><div>${doc.experience_years||0} years</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Shift</label><div>${doc.shift||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Total Jobs</label><div>${doc.total_jobs||0}</div></div></div>
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading mechanic');}
+}
+async function editMech(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Mechanic',name});
+    document.getElementById('modalTitle').textContent='Edit Mechanic';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Name *</label><input id="em_name" value="${doc.mechanic_name||''}"></div><div class="form-group"><label>Phone</label><input id="em_phone" value="${doc.phone||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Specialization</label><select id="em_spec">${['','Engine','Electrical','Body Work','AC','General','Tyres'].map(s=>`<option ${s===doc.specialization?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Shift</label><select id="em_shift">${['','Morning','Evening','Both'].map(s=>`<option ${s===doc.shift?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Experience (years)</label><input type="number" id="em_exp" value="${doc.experience_years||0}"></div><div class="form-group"><label>Active</label><select id="em_active"><option value="1" ${doc.is_active?'selected':''}>Active</option><option value="0" ${!doc.is_active?'selected':''}>Inactive</option></select></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveMech('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading mechanic');}
+}
+async function saveMech(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Mechanic',name,fieldname:JSON.stringify({
+      mechanic_name:document.getElementById('em_name')?.value||'',phone:document.getElementById('em_phone')?.value||'',
+      specialization:document.getElementById('em_spec')?.value||'',shift:document.getElementById('em_shift')?.value||'',
+      experience_years:document.getElementById('em_exp')?.value||0,is_active:parseInt(document.getElementById('em_active')?.value||1)
+    })});
+    showToast('Mechanic saved!');closeModal();loadMechanics();
+  }catch(e){showToast('Error saving mechanic');}
+}
+
+// SERVICES
+async function loadServices(){
+  const svcs=await getList('Car Service',['name','service_name','category','price','duration_minutes','is_active'],[],100);
+  const c=document.getElementById('svcTable');
+  if(!svcs||!svcs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No services found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Service</th><th>Category</th><th>Price</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${svcs.map(s=>`<tr>
+    <td><b>${s.service_name}</b></td>
+    <td>${s.category||''}</td>
+    <td style="font-weight:700;color:var(--teal)">₹${(s.price||0).toLocaleString('en-IN')}</td>
+    <td>${s.duration_minutes||0} min</td>
+    <td><span class="badge ${s.is_active?'badge-ready':'badge-cancelled'}">${s.is_active?'Active':'Inactive'}</span></td>
+    <td style="white-space:nowrap">
+      <button class="act-btn act-view" onclick="viewSvc('${s.name}')">👁 View</button>
+      <button class="act-btn act-edit" onclick="editSvc('${s.name}')">✏ Edit</button>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function viewSvc(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Service',name});
+    document.getElementById('modalTitle').textContent='Service: '+doc.service_name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Service Name</label><div style="font-weight:700">${doc.service_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Category</label><div>${doc.category||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Price</label><div style="font-weight:700;color:var(--teal);font-size:1.1rem">₹${(doc.price||0).toLocaleString('en-IN')}</div></div><div><label style="color:var(--muted);font-size:.8rem">Duration</label><div>${doc.duration_minutes||0} minutes</div></div></div>
+      ${doc.description?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Description</label><div>${doc.description}</div></div>`:''}
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading service');}
+}
+async function editSvc(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Service',name});
+    document.getElementById('modalTitle').textContent='Edit Service';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Service Name *</label><input id="es_name" value="${doc.service_name||''}"></div><div class="form-group"><label>Category</label><select id="es_cat">${['','Oil Change','Brake Service','Engine Repair','AC Service','Tyre','Electrical','Body Work','General Service','Custom'].map(s=>`<option ${s===doc.category?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Price (₹)</label><input type="number" id="es_price" value="${doc.price||0}"></div><div class="form-group"><label>Duration (minutes)</label><input type="number" id="es_dur" value="${doc.duration_minutes||30}"></div></div>
+      <div class="form-group"><label>Description</label><textarea id="es_desc" rows="2">${doc.description||''}</textarea></div>
+      <div class="form-group"><label>Status</label><select id="es_active"><option value="1" ${doc.is_active?'selected':''}>Active</option><option value="0" ${!doc.is_active?'selected':''}>Inactive</option></select></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveSvc('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading service');}
+}
+async function saveSvc(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Service',name,fieldname:JSON.stringify({
+      service_name:document.getElementById('es_name')?.value||'',category:document.getElementById('es_cat')?.value||'',
+      price:document.getElementById('es_price')?.value||0,duration_minutes:document.getElementById('es_dur')?.value||30,
+      description:document.getElementById('es_desc')?.value||'',is_active:parseInt(document.getElementById('es_active')?.value||1)
+    })});
+    showToast('Service saved!');closeModal();loadServices();
+  }catch(e){showToast('Error saving service');}
+}
+
+// SPARE PARTS
+let partCatFilter='All', showLowStock=false;
+function filterParts(cat,el){
+  if(cat==='lowstock'){showLowStock=true;partCatFilter='All';}
+  else{showLowStock=false;partCatFilter=cat;}
+  document.querySelectorAll('#sec-spareparts .tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  loadParts();
+}
+async function loadParts(){
+  const params={};
+  if(partCatFilter&&partCatFilter!=='All')params.category=partCatFilter;
+  if(showLowStock)params.low_stock=true;
+  const parts=await post('car_app.api.get_spare_parts',params);
+  const c=document.getElementById('partTable');
+  if(!parts||!parts.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No parts found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Part Name</th><th>Category</th><th>Brand</th><th>Price</th><th>Stock</th><th>Reorder Level</th><th>Unit</th><th>Supplier</th><th>Actions</th></tr></thead><tbody>
+  ${parts.map(p=>{
+    const low=p.stock_qty<=p.reorder_level;
+    return `<tr>
+      <td><b>${p.part_name}</b>${low?'<span class="low-stock-badge" style="margin-left:6px;">Low</span>':''}</td>
+      <td>${p.category||''}</td><td>${p.brand||''}</td>
+      <td style="font-weight:700;color:var(--teal)">₹${(p.price||0).toLocaleString('en-IN')}</td>
+      <td style="font-weight:700;color:${low?'#dc2626':'var(--text)'}">${p.stock_qty||0}</td>
+      <td>${p.reorder_level||0}</td><td>${p.unit||''}</td><td>${p.supplier_name||'-'}</td>
+      <td style="white-space:nowrap">
+        <button class="act-btn act-view" onclick="viewPart('${p.name}')">👁 View</button>
+        <button class="act-btn act-edit" onclick="editPart('${p.name}')">✏ Edit</button>
+      </td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+async function viewPart(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Spare Part',name});
+    const low=(doc.stock_qty||0)<=(doc.reorder_level||5);
+    document.getElementById('modalTitle').textContent='Spare Part: '+doc.part_name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Part Name</label><div style="font-weight:700">${doc.part_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Category</label><div>${doc.category||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Brand</label><div>${doc.brand||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Part Number</label><div>${doc.part_number||'—'}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Price</label><div style="font-weight:700;color:var(--teal);font-size:1.1rem">₹${(doc.price||0).toLocaleString('en-IN')}</div></div><div><label style="color:var(--muted);font-size:.8rem">Unit</label><div>${doc.unit||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Stock Qty</label><div style="font-weight:700;color:${low?'#dc2626':'#00875a'}">${doc.stock_qty||0} ${low?'⚠️ Low':''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Reorder Level</label><div>${doc.reorder_level||0}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Supplier</label><div>${doc.supplier_name||'—'}</div></div><div><label style="color:var(--muted);font-size:.8rem">Supplier Phone</label><div>${doc.supplier_phone||'—'}</div></div></div>
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading part');}
+}
+
+async function editPart(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Spare Part',name});
+    document.getElementById('modalTitle').textContent='Edit Spare Part';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Part Name *</label><input id="ep_name" value="${doc.part_name||''}"></div><div class="form-group"><label>Part Number</label><input id="ep_num" value="${doc.part_number||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Category</label><select id="ep_cat">${['','Engine','Brake','Electrical','Body','AC','Tyres','Oil','Filter','Other'].map(s=>`<option ${s===doc.category?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Brand</label><input id="ep_brand" value="${doc.brand||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Price (₹)</label><input type="number" id="ep_price" value="${doc.price||0}"></div><div class="form-group"><label>Unit</label><select id="ep_unit">${['','Nos','Litre','Set','Pair'].map(s=>`<option ${s===doc.unit?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Stock Qty</label><input type="number" id="ep_stock" value="${doc.stock_qty||0}"></div><div class="form-group"><label>Reorder Level</label><input type="number" id="ep_reorder" value="${doc.reorder_level||5}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Supplier Name</label><input id="ep_sup" value="${doc.supplier_name||''}"></div><div class="form-group"><label>Supplier Phone</label><input id="ep_suph" value="${doc.supplier_phone||''}"></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="savePart('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading part');}
+}
+async function savePart(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Spare Part',name,fieldname:JSON.stringify({
+      part_name:document.getElementById('ep_name')?.value||'',part_number:document.getElementById('ep_num')?.value||'',
+      category:document.getElementById('ep_cat')?.value||'',brand:document.getElementById('ep_brand')?.value||'',
+      price:document.getElementById('ep_price')?.value||0,unit:document.getElementById('ep_unit')?.value||'',
+      stock_qty:document.getElementById('ep_stock')?.value||0,reorder_level:document.getElementById('ep_reorder')?.value||5,
+      supplier_name:document.getElementById('ep_sup')?.value||'',supplier_phone:document.getElementById('ep_suph')?.value||''
+    })});
+    showToast('Spare part saved!');closeModal();loadParts();
+  }catch(e){showToast('Error saving part');}
+}
+
+// INVOICES
+async function loadInvoices(){
+  const filters=[];
+  const pay=document.getElementById('invPayFilter')?.value;
+  if(pay)filters.push(['payment_status','=',pay]);
+  const df=document.getElementById('invDateFrom')?.value;
+  const dt=document.getElementById('invDateTo')?.value;
+  if(df&&dt)filters.push(['invoice_date','between',[df,dt]]);
+  const invs=await getList('Car Invoice',['name','customer_name','vehicle_number','invoice_date','services','labour_charge','parts_cost','gst_amount','grand_total','payment_status','payment_method'],filters,100);
+  const c=document.getElementById('invTable');
+  if(!invs||!invs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No invoices found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Invoice</th><th>Customer</th><th>Vehicle</th><th>Date</th><th>Services</th><th>Amount</th><th>Status</th><th>Method</th><th>Actions</th></tr></thead><tbody>
+  ${invs.map(i=>`<tr>
+    <td><b>${i.name}</b></td>
+    <td>${i.customer_name||''}</td>
+    <td>${i.vehicle_number||''}</td>
+    <td>${i.invoice_date||''}</td>
+    <td style="font-size:.8rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${i.services||''}">${i.services||''}</td>
+    <td style="font-weight:700;color:var(--teal)">₹${(i.grand_total||0).toLocaleString('en-IN')}</td>
+    <td>${statusBadge(i.payment_status)}</td>
+    <td>${i.payment_method||''}</td>
+    <td style="white-space:nowrap">
+      <button class="act-btn act-view" onclick="viewInvoice('${i.name}')">👁 View</button>
+      <button class="act-btn act-edit" onclick="editInvoice('${i.name}')">✏ Edit</button>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function viewInvoice(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Invoice',name});
+    document.getElementById('modalTitle').textContent='Invoice: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Customer</label><div style="font-weight:600">${doc.customer_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Vehicle</label><div>${doc.vehicle_number||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Invoice Date</label><div>${doc.invoice_date||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Job Card</label><div>${doc.job_card||'—'}</div></div></div>
+      <div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Services</label><div>${doc.services||''}</div></div>
+      <div style="background:var(--card2);border-radius:10px;padding:14px;margin-top:12px;">
+        <div class="receipt-line"><span style="color:var(--muted)">Labour</span><span>₹${(doc.labour_charge||0).toLocaleString('en-IN')}</span></div>
+        <div class="receipt-line"><span style="color:var(--muted)">Parts</span><span>₹${(doc.parts_cost||0).toLocaleString('en-IN')}</span></div>
+        <div class="receipt-line"><span style="color:var(--muted)">GST</span><span>₹${(doc.gst_amount||0).toLocaleString('en-IN')}</span></div>
+        <div class="receipt-line"><span style="color:var(--muted)">Discount</span><span>-₹${(doc.discount||0).toLocaleString('en-IN')}</span></div>
+        <div class="receipt-line" style="font-weight:700;font-size:1.05rem;border-top:1px solid var(--border);padding-top:8px;margin-top:8px"><span>Grand Total</span><span style="color:var(--teal)">₹${(doc.grand_total||0).toLocaleString('en-IN')}</span></div>
+      </div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Payment Status</label><div>${statusBadge(doc.payment_status)}</div></div><div><label style="color:var(--muted);font-size:.8rem">Method</label><div>${doc.payment_method||'—'}</div></div></div>
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading invoice');}
+}
+
+async function editInvoice(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Invoice',name});
+    document.getElementById('modalTitle').textContent='Edit Invoice: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Customer Name</label><input id="ei_cust" value="${doc.customer_name||''}"></div><div class="form-group"><label>Vehicle Number</label><input id="ei_veh" value="${doc.vehicle_number||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Labour Charge (₹)</label><input type="number" id="ei_lab" value="${doc.labour_charge||0}"></div><div class="form-group"><label>Parts Cost (₹)</label><input type="number" id="ei_parts" value="${doc.parts_cost||0}"></div></div>
+      <div class="form-row"><div class="form-group"><label>GST Amount (₹)</label><input type="number" id="ei_gst" value="${doc.gst_amount||0}"></div><div class="form-group"><label>Discount (₹)</label><input type="number" id="ei_disc" value="${doc.discount||0}"></div></div>
+      <div class="form-group"><label>Grand Total (₹)</label><input type="number" id="ei_total" value="${doc.grand_total||0}"></div>
+      <div class="form-row"><div class="form-group"><label>Payment Status</label><select id="ei_pstat">${['Paid','Unpaid','Partially Paid'].map(s=>`<option ${s===doc.payment_status?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Payment Method</label><select id="ei_pmeth">${['','Cash','UPI','Card'].map(s=>`<option ${s===doc.payment_method?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveInvoice('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading invoice');}
+}
+async function saveInvoice(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Invoice',name,fieldname:JSON.stringify({
+      customer_name:document.getElementById('ei_cust')?.value||'',vehicle_number:document.getElementById('ei_veh')?.value||'',
+      labour_charge:document.getElementById('ei_lab')?.value||0,parts_cost:document.getElementById('ei_parts')?.value||0,
+      gst_amount:document.getElementById('ei_gst')?.value||0,discount:document.getElementById('ei_disc')?.value||0,
+      grand_total:document.getElementById('ei_total')?.value||0,
+      payment_status:document.getElementById('ei_pstat')?.value||'',payment_method:document.getElementById('ei_pmeth')?.value||''
+    })});
+    showToast('Invoice saved!');closeModal();loadInvoices();
+  }catch(e){showToast('Error saving invoice');}
+}
+
+// SERVICE RECORDS
+async function loadRecords(){
+  const recs=await getList('Car Service Record',['name','vehicle_number','owner_name','service_date','services_done','mechanic','odometer_reading','total_cost','next_service_date'],[],100);
+  const c=document.getElementById('recTable');
+  if(!recs||!recs.length){c.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);">No service records found</div>';return;}
+  c.innerHTML=`<table><thead><tr><th>Record ID</th><th>Vehicle</th><th>Owner</th><th>Date</th><th>Services Done</th><th>Mechanic</th><th>Odometer</th><th>Cost</th><th>Next Service</th><th>Actions</th></tr></thead><tbody>
+  ${recs.map(r=>`<tr>
+    <td><b>${r.name}</b></td>
+    <td>${r.vehicle_number||''}</td>
+    <td>${r.owner_name||''}</td>
+    <td>${r.service_date||''}</td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.services_done||''}">${r.services_done||''}</td>
+    <td>${r.mechanic||'-'}</td>
+    <td>${r.odometer_reading||0} km</td>
+    <td style="font-weight:700;color:var(--teal)">₹${(r.total_cost||0).toLocaleString('en-IN')}</td>
+    <td style="color:var(--teal)">${r.next_service_date||'-'}</td>
+    <td style="white-space:nowrap">
+      <button class="act-btn act-view" onclick="viewRecord('${r.name}')">👁 View</button>
+      <button class="act-btn act-edit" onclick="editRecord('${r.name}')">✏ Edit</button>
+    </td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+async function viewRecord(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Service Record',name});
+    document.getElementById('modalTitle').textContent='Service Record: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Vehicle Number</label><div style="font-weight:700">${doc.vehicle_number||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Owner</label><div>${doc.owner_name||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Service Date</label><div>${doc.service_date||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Mechanic</label><div>${doc.mechanic||'—'}</div></div></div>
+      <div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Services Done</label><div>${doc.services_done||''}</div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Odometer</label><div>${doc.odometer_reading||0} km</div></div><div><label style="color:var(--muted);font-size:.8rem">Total Cost</label><div style="font-weight:700;color:var(--teal)">₹${(doc.total_cost||0).toLocaleString('en-IN')}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Next Service Date</label><div style="color:var(--teal)">${doc.next_service_date||'—'}</div></div><div><label style="color:var(--muted);font-size:.8rem">Next Service KM</label><div>${doc.next_service_km||'—'}</div></div></div>
+      ${doc.technician_notes?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Technician Notes</label><div>${doc.technician_notes}</div></div>`:''}
+      ${doc.parts_used?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Parts Used</label><div>${doc.parts_used}</div></div>`:''}
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading record');}
+}
+
+async function editRecord(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Service Record',name});
+    document.getElementById('modalTitle').textContent='Edit Service Record';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Vehicle Number</label><input id="er_veh" value="${doc.vehicle_number||''}"></div><div class="form-group"><label>Owner Name</label><input id="er_own" value="${doc.owner_name||''}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Service Date</label><input type="date" id="er_date" value="${doc.service_date||''}"></div><div class="form-group"><label>Mechanic</label><input id="er_mech" value="${doc.mechanic||''}"></div></div>
+      <div class="form-group"><label>Services Done</label><input id="er_svc" value="${doc.services_done||''}"></div>
+      <div class="form-row"><div class="form-group"><label>Odometer (km)</label><input type="number" id="er_odo" value="${doc.odometer_reading||0}"></div><div class="form-group"><label>Total Cost (₹)</label><input type="number" id="er_cost" value="${doc.total_cost||0}"></div></div>
+      <div class="form-row"><div class="form-group"><label>Next Service Date</label><input type="date" id="er_nxtd" value="${doc.next_service_date||''}"></div><div class="form-group"><label>Next Service KM</label><input type="number" id="er_nxtkm" value="${doc.next_service_km||0}"></div></div>
+      <div class="form-group"><label>Parts Used</label><textarea id="er_parts" rows="2">${doc.parts_used||''}</textarea></div>
+      <div class="form-group"><label>Technician Notes</label><textarea id="er_notes" rows="2">${doc.technician_notes||''}</textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveRecord('${name}')">Save</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading record');}
+}
+async function saveRecord(name){
+  try{
+    await post('frappe.client.set_value',{doctype:'Car Service Record',name,fieldname:JSON.stringify({
+      vehicle_number:document.getElementById('er_veh')?.value||'',owner_name:document.getElementById('er_own')?.value||'',
+      service_date:document.getElementById('er_date')?.value||'',mechanic:document.getElementById('er_mech')?.value||'',
+      services_done:document.getElementById('er_svc')?.value||'',odometer_reading:document.getElementById('er_odo')?.value||0,
+      total_cost:document.getElementById('er_cost')?.value||0,next_service_date:document.getElementById('er_nxtd')?.value||'',
+      next_service_km:document.getElementById('er_nxtkm')?.value||0,
+      parts_used:document.getElementById('er_parts')?.value||'',technician_notes:document.getElementById('er_notes')?.value||''
+    })});
+    showToast('Record saved!');closeModal();loadRecords();
+  }catch(e){showToast('Error saving record');}
+}
+
+// OPEN ADD MODAL - for all +Add buttons
+function openAddModal(type){
+  document.getElementById('modalOverlay').classList.add('open');
+  const bodies={
+    customer:`<div class="form-row"><div class="form-group"><label>Full Name *</label><input id="new_fname" placeholder="Customer name"></div><div class="form-group"><label>Phone</label><input id="new_fphone" placeholder="Phone"></div></div>
+      <div class="form-row"><div class="form-group"><label>Email</label><input id="new_femail" placeholder="Email"></div><div class="form-group"><label>Gender</label><select id="new_fgender"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>
+      <div class="form-group"><label>Address</label><textarea id="new_faddr" rows="2" placeholder="Address"></textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('customer')">Add Customer</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`,
+    vehicle:`<div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input id="new_fveh" placeholder="TN01AB1234"></div><div class="form-group"><label>Owner Name *</label><input id="new_fown" placeholder="Owner name"></div></div>
+      <div class="form-row"><div class="form-group"><label>Owner Phone</label><input id="new_fphone" placeholder="Phone"></div><div class="form-group"><label>Fuel Type</label><select id="new_ffuel"><option value="">—</option><option>Petrol</option><option>Diesel</option><option>Electric</option><option>CNG</option><option>Hybrid</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Make</label><input id="new_fmake" placeholder="Toyota/Honda..."></div><div class="form-group"><label>Model</label><input id="new_fmodel" placeholder="Swift/Innova..."></div></div>
+      <div class="form-row"><div class="form-group"><label>Year</label><input type="number" id="new_fyear" placeholder="2022"></div><div class="form-group"><label>Color</label><input id="new_fcolor" placeholder="White/Black..."></div></div>
+      <div class="form-row"><div class="form-group"><label>Insurance Expiry</label><input type="date" id="new_fins"></div><div class="form-group"><label>Next Service Date</label><input type="date" id="new_fnxt"></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('vehicle')">Add Vehicle</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`,
+    mechanic:`<div class="form-row"><div class="form-group"><label>Name *</label><input id="new_fname" placeholder="Mechanic name"></div><div class="form-group"><label>Phone</label><input id="new_fphone" placeholder="Phone"></div></div>
+      <div class="form-row"><div class="form-group"><label>Specialization</label><select id="new_fspec"><option value="">—</option><option>Engine</option><option>Electrical</option><option>Body Work</option><option>AC</option><option>General</option><option>Tyres</option></select></div><div class="form-group"><label>Shift</label><select id="new_fshift"><option>Both</option><option>Morning</option><option>Evening</option></select></div></div>
+      <div class="form-group"><label>Experience (years)</label><input type="number" id="new_fexp" placeholder="5"></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('mechanic')">Add Mechanic</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`,
+    service:`<div class="form-row"><div class="form-group"><label>Service Name *</label><input id="new_fname" placeholder="e.g. AC Service"></div><div class="form-group"><label>Category</label><select id="new_fcat"><option value="">—</option><option>Oil Change</option><option>Brake Service</option><option>Engine Repair</option><option>AC Service</option><option>Tyre</option><option>Electrical</option><option>Body Work</option><option>General Service</option><option>Custom</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Price (₹)</label><input type="number" id="new_fprice" placeholder="0"></div><div class="form-group"><label>Duration (minutes)</label><input type="number" id="new_fdur" placeholder="30"></div></div>
+      <div class="form-group"><label>Description</label><textarea id="new_fdesc" rows="2" placeholder="Description..."></textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('service')">Add Service</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`,
+    part:`<div class="form-row"><div class="form-group"><label>Part Name *</label><input id="new_fname" placeholder="e.g. Engine Oil"></div><div class="form-group"><label>Category</label><select id="new_fcat"><option value="">—</option><option>Engine</option><option>Brake</option><option>Electrical</option><option>Body</option><option>AC</option><option>Tyres</option><option>Oil</option><option>Filter</option><option>Other</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Brand</label><input id="new_fbrand" placeholder="Castrol/Bosch..."></div><div class="form-group"><label>Unit</label><select id="new_funit"><option>Nos</option><option>Litre</option><option>Set</option><option>Pair</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Price (₹)</label><input type="number" id="new_fprice" placeholder="0"></div><div class="form-group"><label>Stock Qty</label><input type="number" id="new_fstock" placeholder="0"></div></div>
+      <div class="form-row"><div class="form-group"><label>Reorder Level</label><input type="number" id="new_freorder" placeholder="5"></div><div class="form-group"><label>Supplier Name</label><input id="new_fsup" placeholder="Supplier"></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('part')">Add Part</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`,
+    invoice:`<div class="form-row"><div class="form-group"><label>Customer Name *</label><input id="new_fcust" placeholder="Customer name"></div><div class="form-group"><label>Vehicle Number *</label><input id="new_fveh" placeholder="TN01AB1234"></div></div>
+      <div class="form-group"><label>Services</label><input id="new_fsvc" placeholder="Oil Change, AC Service..."></div>
+      <div class="form-row"><div class="form-group"><label>Labour Charge (₹)</label><input type="number" id="new_flab" value="0"></div><div class="form-group"><label>Parts Cost (₹)</label><input type="number" id="new_fparts" value="0"></div></div>
+      <div class="form-row"><div class="form-group"><label>GST Amount (₹)</label><input type="number" id="new_fgst" value="0"></div><div class="form-group"><label>Grand Total (₹)</label><input type="number" id="new_ftotal" value="0"></div></div>
+      <div class="form-row"><div class="form-group"><label>Payment Status</label><select id="new_fpstat"><option>Unpaid</option><option>Paid</option><option>Partially Paid</option></select></div><div class="form-group"><label>Payment Method</label><select id="new_fpmeth"><option value="">—</option><option>Cash</option><option>UPI</option><option>Card</option></select></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('invoice')">Create Invoice</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`,
+    record:`<div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input id="new_fveh" placeholder="TN01AB1234"></div><div class="form-group"><label>Owner Name</label><input id="new_fown" placeholder="Owner name"></div></div>
+      <div class="form-row"><div class="form-group"><label>Service Date *</label><input type="date" id="new_fdate"></div><div class="form-group"><label>Mechanic</label><input id="new_fmech" placeholder="Mechanic name"></div></div>
+      <div class="form-group"><label>Services Done</label><input id="new_fsvc" placeholder="Oil Change, Brake Service..."></div>
+      <div class="form-row"><div class="form-group"><label>Odometer (km)</label><input type="number" id="new_fodo" value="0"></div><div class="form-group"><label>Total Cost (₹)</label><input type="number" id="new_fcost" value="0"></div></div>
+      <div class="form-row"><div class="form-group"><label>Next Service Date</label><input type="date" id="new_fnxtd"></div><div class="form-group"><label>Next Service KM</label><input type="number" id="new_fnxtkm" value="0"></div></div>
+      <div class="form-group"><label>Technician Notes</label><textarea id="new_fnotes" rows="2" placeholder="Notes..."></textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="addNew('record')">Add Record</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`
+  };
+  const titles={customer:'Add New Customer',vehicle:'Add New Vehicle',mechanic:'Add New Mechanic',service:'Add New Service',part:'Add New Spare Part',invoice:'New Invoice',record:'Add Service Record'};
+  document.getElementById('modalTitle').textContent=titles[type]||'Add New';
+  document.getElementById('modalBody').innerHTML=bodies[type]||'';
+}
+
+async function addNew(type){
+  try{
+    let doc={};
+    if(type==='customer'){
+      const name=document.getElementById('new_fname')?.value?.trim();
+      if(!name){showToast('Customer name required');return;}
+      doc={doctype:'Car Customer',full_name:name,phone:document.getElementById('new_fphone')?.value||'',email:document.getElementById('new_femail')?.value||'',gender:document.getElementById('new_fgender')?.value||'',address:document.getElementById('new_faddr')?.value||''};
+    }else if(type==='vehicle'){
+      const vn=document.getElementById('new_fveh')?.value?.trim();
+      if(!vn){showToast('Vehicle number required');return;}
+      doc={doctype:'Car Vehicle',vehicle_number:vn,owner_name:document.getElementById('new_fown')?.value||'',owner_phone:document.getElementById('new_fphone')?.value||'',fuel_type:document.getElementById('new_ffuel')?.value||'',make:document.getElementById('new_fmake')?.value||'',model:document.getElementById('new_fmodel')?.value||'',year:document.getElementById('new_fyear')?.value||'',color:document.getElementById('new_fcolor')?.value||'',insurance_expiry:document.getElementById('new_fins')?.value||'',next_service_date:document.getElementById('new_fnxt')?.value||''};
+    }else if(type==='mechanic'){
+      const name=document.getElementById('new_fname')?.value?.trim();
+      if(!name){showToast('Mechanic name required');return;}
+      doc={doctype:'Car Mechanic',mechanic_name:name,phone:document.getElementById('new_fphone')?.value||'',specialization:document.getElementById('new_fspec')?.value||'',shift:document.getElementById('new_fshift')?.value||'Both',experience_years:document.getElementById('new_fexp')?.value||0,is_active:1,total_jobs:0};
+    }else if(type==='service'){
+      const name=document.getElementById('new_fname')?.value?.trim();
+      if(!name){showToast('Service name required');return;}
+      doc={doctype:'Car Service',service_name:name,category:document.getElementById('new_fcat')?.value||'',price:document.getElementById('new_fprice')?.value||0,duration_minutes:document.getElementById('new_fdur')?.value||30,description:document.getElementById('new_fdesc')?.value||'',is_active:1};
+    }else if(type==='part'){
+      const name=document.getElementById('new_fname')?.value?.trim();
+      if(!name){showToast('Part name required');return;}
+      doc={doctype:'Car Spare Part',part_name:name,category:document.getElementById('new_fcat')?.value||'',brand:document.getElementById('new_fbrand')?.value||'',unit:document.getElementById('new_funit')?.value||'Nos',price:document.getElementById('new_fprice')?.value||0,stock_qty:document.getElementById('new_fstock')?.value||0,reorder_level:document.getElementById('new_freorder')?.value||5,supplier_name:document.getElementById('new_fsup')?.value||'',is_active:1};
+    }else if(type==='invoice'){
+      const cust=document.getElementById('new_fcust')?.value?.trim();
+      if(!cust){showToast('Customer name required');return;}
+      doc={doctype:'Car Invoice',customer_name:cust,vehicle_number:document.getElementById('new_fveh')?.value||'',services:document.getElementById('new_fsvc')?.value||'',invoice_date:new Date().toISOString().split('T')[0],labour_charge:document.getElementById('new_flab')?.value||0,parts_cost:document.getElementById('new_fparts')?.value||0,gst_amount:document.getElementById('new_fgst')?.value||0,grand_total:document.getElementById('new_ftotal')?.value||0,payment_status:document.getElementById('new_fpstat')?.value||'Unpaid',payment_method:document.getElementById('new_fpmeth')?.value||''};
+    }else if(type==='record'){
+      const vn=document.getElementById('new_fveh')?.value?.trim();
+      if(!vn){showToast('Vehicle number required');return;}
+      doc={doctype:'Car Service Record',vehicle_number:vn,owner_name:document.getElementById('new_fown')?.value||'',service_date:document.getElementById('new_fdate')?.value||'',mechanic:document.getElementById('new_fmech')?.value||'',services_done:document.getElementById('new_fsvc')?.value||'',odometer_reading:document.getElementById('new_fodo')?.value||0,total_cost:document.getElementById('new_fcost')?.value||0,next_service_date:document.getElementById('new_fnxtd')?.value||'',next_service_km:document.getElementById('new_fnxtkm')?.value||0,technician_notes:document.getElementById('new_fnotes')?.value||''};
+    }
+    const res=await post('frappe.client.insert',{doc:JSON.stringify(doc)});
+    showToast('✅ '+type+' added: '+(res?.name||''));
+    closeModal();
+    const reloaders={customer:loadCustomers,vehicle:loadVehicles,mechanic:loadMechanics,service:loadServices,part:loadParts,invoice:loadInvoices,record:loadRecords};
+    if(reloaders[type])reloaders[type]();
+  }catch(e){showToast('Error adding '+type+': '+e.message);}
+}
+
+// CALENDAR
+let calView='week', calOffset=0, allJobs=[];
+const STATUS_COLORS={'Received':'#60a5fa','In Progress':'#fbbf24','Waiting for Parts':'#fb923c','Ready':'#4ade80','Delivered':'#2dd4bf','Cancelled':'#f87171'};
+async function renderCal(){
+  const today=new Date();
+  let startDate,endDate;
+  if(calView==='week'){
+    const day=today.getDay();
+    startDate=new Date(today);startDate.setDate(today.getDate()-day+calOffset*7);
+    endDate=new Date(startDate);endDate.setDate(startDate.getDate()+6);
+  }else{
+    startDate=new Date(today.getFullYear(),today.getMonth()+calOffset,1);
+    endDate=new Date(today.getFullYear(),today.getMonth()+calOffset+1,0);
+  }
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('calTitle').textContent=calView==='week'?`${fmt(startDate)} – ${fmt(endDate)}`:startDate.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  try{
+    allJobs=await getList('Car Job Card',['name','customer_name','vehicle_number','status','mechanic','job_date','services'],[['job_date','between',[fmt(startDate),fmt(endDate)]]],200);
+  }catch(e){allJobs=[];}
+  const mechF=document.getElementById('calMechFilter')?.value?.toLowerCase()||'';
+  const jobs=mechF?allJobs.filter(j=>j.mechanic&&j.mechanic.toLowerCase().includes(mechF)):allJobs;
+  const grid=document.getElementById('calGrid');
+  const cells=[];
+  const cur=new Date(startDate);
+  while(cur<=endDate){
+    cells.push(new Date(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+  const todayStr=fmt(today);
+  grid.style.gridTemplateColumns=`repeat(${calView==='week'?7:7},1fr)`;
+  grid.innerHTML=cells.map(d=>{
+    const ds=fmt(d);
+    const dayJobs=jobs.filter(j=>j.job_date===ds);
+    return `<div class="cal-cell${ds===todayStr?' today':''}">
+      <div class="cal-cell-date" style="${ds===todayStr?'color:var(--teal);font-weight:700':''}">${d.getDate()}</div>
+      ${dayJobs.map(j=>`<div class="cal-event" style="background:${STATUS_COLORS[j.status]||'#60a5fa'}22;color:${STATUS_COLORS[j.status]||'#60a5fa'};border-left:2px solid ${STATUS_COLORS[j.status]||'#60a5fa'}" onclick="viewJob('${j.name}')">${j.vehicle_number||j.name}</div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// POS
+let cart=[], posCat='All', activeSession=null, payMethod='Cash', posServices=[];
+async function loadPos(){
+  try{
+    activeSession=await post('car_app.api.get_active_pos_session',{});
+    updateSessionBar();
+    loadPosServices();
+  }catch(e){console.log(e);}
+}
+function updateSessionBar(){
+  const info=document.getElementById('posSessionInfo');
+  const openBtn=document.getElementById('posOpenBtn');
+  const closeBtn=document.getElementById('posCloseBtn');
+  if(activeSession){
+    info.innerHTML=`<span style="color:#4ade80">🟢 Session Open</span> · Opened by: ${activeSession.opened_by||'?'} · Opening Cash: ₹${activeSession.opening_cash||0}`;
+    openBtn.style.display='none';closeBtn.style.display='block';
+  }else{
+    info.textContent='No active POS session';
+    openBtn.style.display='block';closeBtn.style.display='none';
+  }
+}
+async function openPosSession(){
+  const cash=prompt('Enter opening cash amount:','0');
+  if(cash===null)return;
+  const res=await post('car_app.api.open_pos_session',{opening_cash:parseFloat(cash)||0,opened_by:'Admin'});
+  activeSession=await post('car_app.api.get_active_pos_session',{});
+  updateSessionBar();showToast('POS Session Opened!');
+}
+async function closePosSession(){
+  if(!activeSession){showToast('No active session');return;}
+  const cash=prompt('Enter closing cash amount:','0');
+  if(cash===null)return;
+  const res=await post('car_app.api.close_pos_session',{session_name:activeSession.name,closing_cash:parseFloat(cash)||0});
+  showToast(`Session closed! Total Sales: ₹${res.total_sales||0}`);
+  activeSession=null;updateSessionBar();
+}
+async function loadPosServices(){
+  const params=posCat&&posCat!=='All'?{category:posCat}:{};
+  posServices=await post('car_app.api.get_services',params)||[];
+  const grid=document.getElementById('posSvcGrid');
+  grid.innerHTML=posServices.map(s=>`<div class="pos-svc-btn" onclick="addToCart(${JSON.stringify(s).replace(/'/g,'&apos;')})">
+    <div class="pos-svc-name">${s.service_name}</div>
+    <div class="pos-svc-price">₹${(s.price||0).toLocaleString('en-IN')}</div>
+    <div style="font-size:.72rem;color:var(--muted)">${s.category||''}</div>
+  </div>`).join('');
+}
+function addToCart(svc){
+  const ex=cart.find(i=>i.name===svc.name);
+  if(ex){showToast(svc.service_name+' already in cart');return;}
+  cart.push({...svc,qty:1});
+  renderCart();
+}
+function removeFromCart(idx){cart.splice(idx,1);renderCart();}
+function renderCart(){
+  const c=document.getElementById('cartItems');
+  if(!cart.length){c.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;">No items in cart</div>';updateCartTotals();return;}
+  c.innerHTML=cart.map((item,i)=>`<div class="cart-item">
+    <div><div style="font-size:.88rem;font-weight:600">${item.service_name}</div><div style="font-size:.75rem;color:var(--muted)">${item.category||''}</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="color:var(--teal);font-weight:700">₹${(item.price||0).toLocaleString('en-IN')}</span>
+      <button onclick="removeFromCart(${i})" style="background:rgba(239,68,68,.2);border:none;color:#f87171;border-radius:4px;padding:2px 8px;cursor:pointer">×</button>
+    </div>
+  </div>`).join('');
+  updateCartTotals();
+}
+function updateCartTotals(){
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const gst=Math.round(sub*0.18);
+  document.getElementById('cartSubtotal').textContent='₹'+sub.toLocaleString('en-IN');
+  document.getElementById('cartGst').textContent='₹'+gst.toLocaleString('en-IN');
+  document.getElementById('cartTotal').textContent='₹'+(sub+gst).toLocaleString('en-IN');
+}
+function goToPayment(){
+  if(!cart.length){showToast('Add services to cart');return;}
+  if(!document.getElementById('posCustomer').value.trim()){showToast('Enter customer name');return;}
+  if(!document.getElementById('posVehicle').value.trim()){showToast('Enter vehicle number');return;}
+  goToStep(2);selectPayMethod('Cash');
+}
+function goToStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('posStep'+i).classList.toggle('active',i===n);
+    const dot=document.getElementById('step'+i+'dot');
+    dot.classList.remove('active','done');
+    if(i===n)dot.classList.add('active');
+    else if(i<n)dot.classList.add('done');
+  });
+}
+function selectPayMethod(m){
+  payMethod=m;
+  document.querySelectorAll('#posStep2 .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pay'+m).classList.add('active');
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const total=sub+Math.round(sub*0.18);
+  const area=document.getElementById('payMethodArea');
+  if(m==='Cash'){
+    area.innerHTML=`<div class="form-group"><label>Amount Tendered (₹)</label><input type="number" id="cashTendered" value="${total}" oninput="calcChange()"></div><div style="font-size:1.2rem;font-weight:700;margin-top:8px;">Change: <span id="changeAmt" style="color:var(--teal)">₹0</span></div>`;
+  }else if(m==='UPI'){
+    area.innerHTML=`<div style="text-align:center;padding:20px;"><div style="font-size:3rem">📲</div><div style="font-size:1.3rem;font-weight:700;margin:8px 0;">UPI ID: <span style="color:var(--teal)" id="posUpiId">autocare@upi</span></div><div style="font-size:1.5rem;font-weight:800;color:var(--teal);">₹${total.toLocaleString('en-IN')}</div></div>`;
+    post('car_app.api.get_settings',{}).then(s=>{if(s&&s.upi_id)document.getElementById('posUpiId').textContent=s.upi_id;}).catch(()=>{});
+  }else{
+    area.innerHTML=`<div style="text-align:center;padding:20px;"><div style="font-size:3rem">💳</div><div style="font-size:1.5rem;font-weight:800;color:var(--teal);margin-top:12px;">₹${total.toLocaleString('en-IN')}</div><p style="color:var(--muted);margin-top:8px;">Swipe or tap card on terminal</p></div>`;
+  }
+}
+function calcChange(){
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const total=sub+Math.round(sub*0.18);
+  const tendered=parseFloat(document.getElementById('cashTendered')?.value)||0;
+  document.getElementById('changeAmt').textContent='₹'+(tendered-total).toLocaleString('en-IN');
+}
+async function confirmPayment(){
+  const customer=document.getElementById('posCustomer').value.trim();
+  const phone=document.getElementById('posPhone').value.trim();
+  const vehicle=document.getElementById('posVehicle').value.trim();
+  const make=document.getElementById('posMake').value;
+  const sub=cart.reduce((s,i)=>s+(i.price||0),0);
+  const gst=Math.round(sub*0.18);
+  const total=sub+gst;
+  try{
+    const inv=await post('frappe.client.insert',{doc:JSON.stringify({
+      doctype:'Car Invoice',customer_name:customer,vehicle_number:vehicle,
+      invoice_date:new Date().toISOString().split('T')[0],
+      services:cart.map(i=>i.service_name).join(', '),
+      labour_charge:sub,gst_amount:gst,grand_total:total,
+      payment_status:'Paid',payment_method:payMethod
+    })});
+    renderReceipt(inv,customer,vehicle,sub,gst,total);
+    goToStep(3);
+  }catch(e){showToast('Error creating invoice');}
+}
+function renderReceipt(inv,customer,vehicle,sub,gst,total){
+  const r=document.getElementById('receiptArea');
+  r.innerHTML=`<h3>AutoCare Pro</h3><div style="text-align:center;font-size:.75rem;margin-bottom:8px;">Tax Invoice</div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-line"><span>Invoice:</span><span>${inv?.name||'CINV-XXXX'}</span></div>
+  <div class="receipt-line"><span>Date:</span><span>${new Date().toLocaleDateString('en-IN')}</span></div>
+  <div class="receipt-line"><span>Customer:</span><span>${customer}</span></div>
+  <div class="receipt-line"><span>Vehicle:</span><span>${vehicle}</span></div>
+  <div class="receipt-divider"></div>
+  ${cart.map(i=>`<div class="receipt-line"><span>${i.service_name}</span><span>₹${(i.price||0).toLocaleString('en-IN')}</span></div>`).join('')}
+  <div class="receipt-divider"></div>
+  <div class="receipt-line"><span>Subtotal</span><span>₹${sub.toLocaleString('en-IN')}</span></div>
+  <div class="receipt-line"><span>GST (18%)</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-line" style="font-weight:700;font-size:1rem"><span>TOTAL</span><span>₹${total.toLocaleString('en-IN')}</span></div>
+  <div class="receipt-line"><span>Payment</span><span>${payMethod}</span></div>
+  <div class="receipt-divider"></div>
+  <div style="text-align:center;font-size:.75rem;margin-top:8px;">Thank you! Visit again 🚗</div>`;
+}
+function newPosTransaction(){cart=[];renderCart();goToStep(1);}
+
+// MODALS
+function openModal(type){
+  document.getElementById('modalOverlay').classList.add('open');
+  if(type==='newJobCard'){
+    document.getElementById('modalTitle').textContent='New Job Card';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Customer Name *</label><input id="m_cust" placeholder="Customer name"></div><div class="form-group"><label>Phone</label><input id="m_phone" placeholder="Phone"></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input id="m_veh" placeholder="TN01AB1234"></div><div class="form-group"><label>Vehicle Make</label><input id="m_make" placeholder="Toyota/Honda..."></div></div>
+      <div class="form-group"><label>Vehicle Model</label><input id="m_model" placeholder="e.g. Swift, Innova"></div>
+      <div class="form-group"><label>Services (comma separated) *</label><input id="m_svc" placeholder="Oil Change, AC Service..."></div>
+      <div class="form-row"><div class="form-group"><label>Mechanic</label><input id="m_mech" placeholder="Mechanic name"></div><div class="form-group"><label>Odometer In</label><input type="number" id="m_odo" placeholder="km"></div></div>
+      <div class="form-group"><label>Customer Complaint</label><textarea id="m_complaint" rows="2" placeholder="Describe the issue..."></textarea></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="submitNewJob()">Create Job Card</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+  }else if(type==='newAppointment'){
+    document.getElementById('modalTitle').textContent='New Appointment';
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div class="form-group"><label>Customer Name *</label><input id="a_cust" placeholder="Customer name"></div><div class="form-group"><label>Phone</label><input id="a_phone"></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle Number *</label><input id="a_veh"></div><div class="form-group"><label>Vehicle Make</label><input id="a_make"></div></div>
+      <div class="form-group"><label>Service Type</label><input id="a_svc" placeholder="Oil Change, AC Service..."></div>
+      <div class="form-row"><div class="form-group"><label>Date *</label><input type="date" id="a_date"></div><div class="form-group"><label>Time</label><input type="time" id="a_time" value="10:00"></div></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="submitNewApt()">Book Appointment</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+  }
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+async function submitNewJob(){
+  const name=document.getElementById('m_cust')?.value?.trim();
+  const vehicle=document.getElementById('m_veh')?.value?.trim();
+  if(!name||!vehicle){showToast('Name and vehicle required');return;}
+  try{
+    const res=await post('car_app.api.create_job_card',{
+      customer_name:name,customer_phone:document.getElementById('m_phone')?.value||'',
+      vehicle_number:vehicle,vehicle_make:document.getElementById('m_make')?.value||'',
+      vehicle_model:document.getElementById('m_model')?.value||'',
+      services:document.getElementById('m_svc')?.value||'',
+      mechanic:document.getElementById('m_mech')?.value||'',
+      odometer_in:document.getElementById('m_odo')?.value||0,
+      customer_complaint:document.getElementById('m_complaint')?.value||''
+    });
+    showToast('✅ Job Card created: '+res.name);
+    closeModal();loadJobCards();
+  }catch(e){showToast('Error creating job card');}
+}
+async function submitNewApt(){
+  const name=document.getElementById('a_cust')?.value?.trim();
+  const date=document.getElementById('a_date')?.value;
+  if(!name||!date){showToast('Name and date required');return;}
+  try{
+    const res=await post('car_app.api.book_appointment',{
+      customer_name:name,customer_phone:document.getElementById('a_phone')?.value||'',
+      vehicle_number:document.getElementById('a_veh')?.value||'',
+      vehicle_make:document.getElementById('a_make')?.value||'',
+      service_type:document.getElementById('a_svc')?.value||'',
+      appointment_date:date,appointment_time:document.getElementById('a_time')?.value||'10:00'
+    });
+    showToast('✅ Appointment booked: '+res.name);
+    closeModal();loadAppointments();
+  }catch(e){showToast('Error booking appointment');}
+}
+async function viewJob(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Job Card',name});
+    document.getElementById('modalTitle').textContent='Job Card: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-row"><div><label style="color:var(--muted);font-size:.8rem">Customer</label><div style="font-weight:600">${doc.customer_name||''}</div></div><div><label style="color:var(--muted);font-size:.8rem">Phone</label><div>${doc.customer_phone||''}</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Vehicle</label><div style="font-weight:600">${doc.vehicle_number||''} (${doc.vehicle_make||''} ${doc.vehicle_model||''})</div></div><div><label style="color:var(--muted);font-size:.8rem">Status</label><div>${statusBadge(doc.status)}</div></div></div>
+      <div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Services</label><div>${doc.services||'-'}</div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Mechanic</label><div>${doc.mechanic||'-'}</div></div><div><label style="color:var(--muted);font-size:.8rem">Odometer In</label><div>${doc.odometer_in||0} km</div></div></div>
+      <div class="form-row" style="margin-top:12px"><div><label style="color:var(--muted);font-size:.8rem">Estimated</label><div>₹${(doc.estimated_amount||0).toLocaleString('en-IN')}</div></div><div><label style="color:var(--muted);font-size:.8rem">Grand Total</label><div style="font-weight:700;color:var(--teal)">₹${(doc.grand_total||0).toLocaleString('en-IN')}</div></div></div>
+      ${doc.customer_complaint?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Complaint</label><div>${doc.customer_complaint}</div></div>`:''}
+      ${doc.work_done?`<div style="margin-top:12px"><label style="color:var(--muted);font-size:.8rem">Work Done</label><div>${doc.work_done}</div></div>`:''}
+      <button class="btn-outline" onclick="closeModal()" style="margin-top:16px">Close</button>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading job card');}
+}
+async function editJob(name){
+  try{
+    const doc=await post('frappe.client.get',{doctype:'Car Job Card',name});
+    document.getElementById('modalTitle').textContent='Edit Job: '+name;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="form-group"><label>Services</label><input id="ej_svc" value="${doc.services||''}"></div>
+      <div class="form-row"><div class="form-group"><label>Mechanic</label><input id="ej_mech" value="${doc.mechanic||''}"></div><div class="form-group"><label>Status</label><select id="ej_status">${['Received','In Progress','Waiting for Parts','Ready','Delivered','Cancelled'].map(s=>`<option ${s===doc.status?'selected':''}>${s}</option>`).join('')}</select></div></div>
+      <div class="form-row"><div class="form-group"><label>Labour Charge</label><input type="number" id="ej_labour" value="${doc.labour_charge||0}"></div><div class="form-group"><label>Parts Cost</label><input type="number" id="ej_parts" value="${doc.parts_cost||0}"></div></div>
+      <div class="form-group"><label>Work Done</label><textarea id="ej_work" rows="2">${doc.work_done||''}</textarea></div>
+      <div class="form-group"><label>Delivery Date</label><input type="date" id="ej_deldate" value="${doc.delivery_date||''}"></div>
+      <div style="display:flex;gap:12px;margin-top:8px;"><button class="btn" onclick="saveEditJob('${name}')">Save Changes</button><button class="btn-outline" onclick="closeModal()">Cancel</button></div>`;
+    document.getElementById('modalOverlay').classList.add('open');
+  }catch(e){showToast('Error loading job');}
+}
+async function saveEditJob(name){
+  try{
+    const labour=parseFloat(document.getElementById('ej_labour')?.value)||0;
+    const parts=parseFloat(document.getElementById('ej_parts')?.value)||0;
+    const newStatus=document.getElementById('ej_status')?.value;
+    await post('frappe.client.set_value',{doctype:'Car Job Card',name,fieldname:JSON.stringify({
+      services:document.getElementById('ej_svc')?.value||'',
+      mechanic:document.getElementById('ej_mech')?.value||'',
+      status:newStatus,
+      labour_charge:labour,parts_cost:parts,grand_total:labour+parts,
+      work_done:document.getElementById('ej_work')?.value||'',
+      delivery_date:document.getElementById('ej_deldate')?.value||''
+    })});
+    showToast('Job Card updated!');closeModal();
+    if(currentSection==='jobcards')loadJobCards();
+    else if(currentSection==='dashboard')loadDashboard();
+  }catch(e){showToast('Error saving job card');}
+}
+
+// Init
+loadDashboard();
+</script>
+</body>
+</html>
