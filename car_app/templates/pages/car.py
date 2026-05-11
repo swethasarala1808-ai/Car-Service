@@ -6,17 +6,15 @@ no_cache = 1
 def get_context(context):
     context.no_cache = 1
     context.show_sidebar = False
-    # Try multiple paths to find the HTML file
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # car_app/
-    paths_to_try = [
-        os.path.join(base_dir, "www", "car.html"),
-        os.path.join(base_dir, "www", "car", "index.html"),
-        os.path.join(os.path.dirname(__file__), "_car_content.html"),
+    app_path = frappe.get_app_path("car_app")
+    paths = [
+        os.path.join(app_path, "www", "car.html"),
+        os.path.join(app_path, "www", "car", "index.html"),
     ]
-    for p in paths_to_try:
+    for p in paths:
         if os.path.exists(p):
             with open(p, "r", encoding="utf-8") as f:
                 context.car_page_html = f.read()
             return context
-    context.car_page_html = "<h1>Car Service Center</h1><p>Page loading...</p>"
+    context.car_page_html = "<h1>Car Service Center</h1>"
     return context
